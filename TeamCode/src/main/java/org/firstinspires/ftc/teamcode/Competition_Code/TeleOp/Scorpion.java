@@ -72,7 +72,7 @@ public class Scorpion extends LinearOpMode{
 			/**End of Mechanum Controls**/
 
 			/**Intake Controls**/
-				if (gamepad1.a) {
+				if (gamepad1.b) {
 					robot.intake.setPower(1); //Start running intake motor
 				}
 				else {
@@ -106,10 +106,19 @@ public class Scorpion extends LinearOpMode{
 					robot.launch.setPower(.5);	//Set launcher motor to half speed
 				}
 
-
+				if (gamepad1.a) { //Activate Pusher
+					for (int i = 0; i <= 0; i++) {
+						robot.flipper.setTargetPosition(50);
+						robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+						robot.flipper.setPower(.1);
+						robot.flipper.setTargetPosition(0);
+						robot.flipper.setPower(0);
+					}
+				}
 			/**End of launcher controls**/
 
 			/**Telemetry**/
+				telemetry.addData("Flipper Encoder: ", robot.flipper.getCurrentPosition());
 				telemetry.addData("Speed: ", robot.speed);
 				telemetry.update();
 			/**End of telemetry**/

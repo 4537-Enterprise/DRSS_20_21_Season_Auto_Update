@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Competition_Code;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -83,7 +84,7 @@ public class InitHardware{
 		intake.setDirection(DcMotor.Direction.FORWARD);  // Sets the intake motor direction to forward
 		launch = hwMap.dcMotor.get("launch");            // Initializes launcher motor from configuration
 		launch.setDirection(DcMotor.Direction.FORWARD);  // Sets the launcher motor direction to forward
-		flipper = hwMap.dcMotor.get("flipper");			 // Initializes flipper motor from configuration
+		flipper = hwMap.get(DcMotorEx.class, "flipper");			 // Initializes flipper motor from configuration
 		flipper.setDirection(DcMotor.Direction.FORWARD); // Sets the flipper motor direction to forward
 
 		//Angle Adjustment Servo Initialization
@@ -92,6 +93,7 @@ public class InitHardware{
 
 		//Launcher Encoder Initializations
 		boreEncoder = hwMap.get(DcMotor.class, "launch");
+		flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 		//Launcher Encoder Direction Initialization
 		boreEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
