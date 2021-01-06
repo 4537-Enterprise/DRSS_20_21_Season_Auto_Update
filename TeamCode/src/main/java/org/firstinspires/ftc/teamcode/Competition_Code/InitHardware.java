@@ -41,8 +41,8 @@ public class InitHardware{
 		public DcMotor boreEncoder;
 
 		// Angle adjustment variables definitions
-		public double anglePositionLeft = .5;
-		public double anglePositionRight = .5;
+		public double anglePositionLeft = .66;
+		public double anglePositionRight = .34;
 
 	//Local OpMode Members
 	HardwareMap hwMap =  null;
@@ -81,11 +81,11 @@ public class InitHardware{
 
 		//Lift and Intake Motor Initialization
 		intake = hwMap.dcMotor.get("intake");            // Initializes the intake motor from configuration
-		intake.setDirection(DcMotor.Direction.FORWARD);  // Sets the intake motor direction to forward
+		intake.setDirection(DcMotor.Direction.REVERSE);  // Sets the intake motor direction to forward
 		launch = hwMap.dcMotor.get("launch");            // Initializes launcher motor from configuration
 		launch.setDirection(DcMotor.Direction.FORWARD);  // Sets the launcher motor direction to forward
 		flipper = hwMap.get(DcMotorEx.class, "flipper");			 // Initializes flipper motor from configuration
-		flipper.setDirection(DcMotor.Direction.FORWARD); // Sets the flipper motor direction to forward
+		flipper.setDirection(DcMotor.Direction.REVERSE); // Sets the flipper motor direction to forward
 
 		//Angle Adjustment Servo Initialization
 		angleAdjustLeft = hwMap.servo.get("angleAdjustL");
@@ -93,7 +93,7 @@ public class InitHardware{
 
 		//Launcher Encoder Initializations
 		boreEncoder = hwMap.get(DcMotor.class, "launch");
-		flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		boreEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
 
 		//Launcher Encoder Direction Initialization
 		boreEncoder.setDirection(DcMotorSimple.Direction.FORWARD);

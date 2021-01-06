@@ -18,8 +18,9 @@ public class Scorpion extends LinearOpMode{
 
 		robot.init(hardwareMap); //Initialize hardware
 
-		robot.angleAdjustLeft.setPosition(.5); 	//Start servos at lowest point
-		robot.angleAdjustRight.setPosition(.5); //Start servos at lowest point
+		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
+		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
+		robot.flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.launch.setPower(.5);				//Start up launcher
 
 		telemetry.addData("Drive Train: ", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -35,21 +36,21 @@ public class Scorpion extends LinearOpMode{
 			/**Mechanum drive controls**/
 				// left stick controls direction
 				// right stick X controls rotation
-				float gamepad1LeftY = gamepad1.left_stick_y;        // Sets the gamepads left sticks y position to a float so that we can easily track the stick
-				float gamepad1LeftX = -gamepad1.left_stick_x;       // Sets the gamepads left sticks x position to a float so that we can easily track the stick
+				float gamepad1LeftY = -gamepad1.left_stick_y;        // Sets the gamepads left sticks y position to a float so that we can easily track the stick
+				float gamepad1LeftX = gamepad1.left_stick_x;       // Sets the gamepads left sticks x position to a float so that we can easily track the stick
 				float gamepad1RightX = -gamepad1.right_stick_x;     // Sets the gamepads right sticks x position to a float so that we can easily track the stick
 
 				// Mechanum formulas
-				double FrontRight = gamepad1LeftY - gamepad1LeftX - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double FrontLeft = -gamepad1LeftY - gamepad1LeftX - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackRight = gamepad1LeftY + gamepad1LeftX - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackLeft = -gamepad1LeftY + gamepad1LeftX - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontRight = gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontLeft = -gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double BackRight = gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 
 				// sets speed
-				robot.frontRight = Range.clip(Math.pow(FrontRight, 3), -robot.speed, robot.speed);    // Slows down the motor and sets its max/min speed to the double "speed"
-				robot.frontLeft = Range.clip(Math.pow(FrontLeft, 3), -robot.speed, robot.speed);      // Slows down the motor and sets its max/min speed to the double "speed"
-				robot.backRight = Range.clip(Math.pow(BackRight, 3), -robot.speed, robot.speed);      // Slows down the motor and sets its max/min speed to the double "speed"
-				robot.backLeft = Range.clip(Math.pow(BackLeft, 3), -robot.speed, robot.speed);        // Slows down the motor and sets its max/min speed to the double "speed"
+				robot.frontLeft = Range.clip(Math.pow(FrontRight, 3), -robot.speed, robot.speed);    // Slows down the motor and sets its max/min speed to the double "speed"
+				robot.frontRight = Range.clip(Math.pow(FrontLeft, 3), -robot.speed, robot.speed);      // Slows down the motor and sets its max/min speed to the double "speed"
+				robot.backLeft = Range.clip(Math.pow(BackRight, 3), -robot.speed, robot.speed);      // Slows down the motor and sets its max/min speed to the double "speed"
+				robot.backRight = Range.clip(Math.pow(BackLeft, 3), -robot.speed, robot.speed);        // Slows down the motor and sets its max/min speed to the double "speed"
 
 				//speed Controls
 				if (gamepad1.left_trigger > .3){   // Do the following while the left trigger is being held down
@@ -81,19 +82,19 @@ public class Scorpion extends LinearOpMode{
 			/**End of intake controls**/
 
 			/**Launcher Controls**/
-				if (gamepad1.dpad_up) { 										//Move the launcher up
-					robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  	//Subtract from current angle on servo
-					robot.anglePositionRight = robot.anglePositionRight + 0.01;	//Add from current angle on servo
+				if (gamepad1.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
+					robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
+					robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
 				}
 
-				if (gamepad1.dpad_down) { 										//Move the launcher down
+				if (gamepad1.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) { 										//Move the launcher down
 					robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
 					robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
 				}
 
 				if (gamepad1.y) { 					//Put the launcher at its lowest point
-					robot.anglePositionLeft = .5;	//Set servo positions to .5
-					robot.anglePositionRight = .5;	//Set servo positions to .5
+					robot.anglePositionLeft = .66;	//Set servo positions to .5
+					robot.anglePositionRight = .34;	//Set servo positions to .5
 				}
 
 				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
@@ -107,18 +108,28 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad1.a) { //Activate Pusher
-					for (int i = 0; i <= 0; i++) {
-						robot.flipper.setTargetPosition(50);
+					for (int i = 1; i <= 3; i++) {
+						robot.flipper.setTargetPosition(65);
 						robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-						robot.flipper.setPower(.1);
+						robot.flipper.setPower(1);
+						while (robot.flipper.isBusy()) {
+							telemetry.addData("lol", "boof");
+						}
 						robot.flipper.setTargetPosition(0);
+						while (robot.flipper.isBusy()) {
+							telemetry.addData("lol", "boof");
+						}
 						robot.flipper.setPower(0);
+						sleep(250);
 					}
 				}
 			/**End of launcher controls**/
 
 			/**Telemetry**/
 				telemetry.addData("Flipper Encoder: ", robot.flipper.getCurrentPosition());
+				telemetry.addData("Left Servo Position", robot.anglePositionLeft);
+				telemetry.addData("Right Servo Position", robot.anglePositionRight);
+				telemetry.addData("Angle: ", robot.boreEncoder.getCurrentPosition());
 				telemetry.addData("Speed: ", robot.speed);
 				telemetry.update();
 			/**End of telemetry**/
