@@ -6,7 +6,25 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.teamcode.Competition_Code.InitHardware;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 @TeleOp(name = "Scorpion", group = "TeleOp")
 public class Scorpion extends LinearOpMode{
@@ -17,6 +35,89 @@ public class Scorpion extends LinearOpMode{
 	public void runOpMode() throws InterruptedException{
 
 		robot.init(hardwareMap); //Initialize hardware
+
+		/* Vuforia Initializations*/
+			robot.webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
+
+			int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+			VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+
+			parameters.vuforiaLicenseKey = robot.VUFORIA_KEY;
+
+			parameters.cameraName = robot.webcamName;
+
+			// Make sure extended tracking is disabled for this example.
+			parameters.useExtendedTracking = false;
+
+			//  Instantiate the Vuforia engine
+			robot.vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+			// Load the data sets for the trackable objects. These particular data
+			// sets are stored in the 'assets' part of our application.
+			VuforiaTrackables targetsUltimateGoal = this.robot.vuforia.loadTrackablesFromAsset("UltimateGoal");
+			VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
+			blueTowerGoalTarget.setName("Blue Tower Goal Target");
+			VuforiaTrackable redTowerGoalTarget = targetsUltimateGoal.get(1);
+			redTowerGoalTarget.setName("Red Tower Goal Target");
+			VuforiaTrackable redAllianceTarget = targetsUltimateGoal.get(2);
+			redAllianceTarget.setName("Red Alliance Target");
+			VuforiaTrackable blueAllianceTarget = targetsUltimateGoal.get(3);
+			blueAllianceTarget.setName("Blue Alliance Target");
+			VuforiaTrackable frontWallTarget = targetsUltimateGoal.get(4);
+			frontWallTarget.setName("Front Wall Target");
+
+			// For convenience, gather together all the trackable objects in one easily-iterable collection */
+			List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
+			allTrackables.addAll(targetsUltimateGoal);
+
+			//Set the position of the perimeter targets with relation to origin (center of field)
+			redAllianceTarget.setLocation(OpenGLMatrix
+					.translation(0, -robot.halfField, robot.mmTargetHeight)
+					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
+
+			blueAllianceTarget.setLocation(OpenGLMatrix
+					.translation(0, robot.halfField, robot.mmTargetHeight)
+					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
+			frontWallTarget.setLocation(OpenGLMatrix
+					.translation(-robot.halfField, 0, robot.mmTargetHeight)
+					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , 90)));
+
+			// The tower goal targets are located a quarter field length from the ends of the back perimeter wall.
+			blueTowerGoalTarget.setLocation(OpenGLMatrix
+					.translation(robot.halfField, robot.quadField, robot.mmTargetHeight)
+					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , -90)));
+			redTowerGoalTarget.setLocation(OpenGLMatrix
+					.translation(robot.halfField, -robot.quadField, robot.mmTargetHeight)
+					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
+
+			// We need to rotate the camera around it's long axis to bring the correct camera forward.
+			if (robot.CAMERA_CHOICE == BACK) {
+				robot.phoneYRotate = -90;
+			} else {
+				robot.phoneYRotate = 90;
+			}
+
+			// Rotate the phone vertical about the X axis if it's in portrait mode
+			if (robot.PHONE_IS_PORTRAIT) {
+				robot.phoneXRotate = 90 ;
+			}
+
+			// Next, translate the camera lens to where it is on the robot.
+			// In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
+			final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * robot.mmPerInch;   // eg: Camera is 4 Inches in front of robot-center
+			final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * robot.mmPerInch;   // eg: Camera is 8 Inches above ground
+			final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
+
+			OpenGLMatrix robotFromCamera = OpenGLMatrix
+					.translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, robot.phoneYRotate, robot.phoneZRotate, robot.phoneXRotate));
+
+			/**  Let all the trackable listeners know where the phone is.  */
+			for (VuforiaTrackable trackable : allTrackables) {
+				((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
+			}
+		/* End of Vuforia Initializations */
+
 
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
@@ -30,6 +131,8 @@ public class Scorpion extends LinearOpMode{
 		telemetry.update();
 
 		waitForStart();
+
+		targetsUltimateGoal.activate();
 
 		while (opModeIsActive()){
 
@@ -125,6 +228,68 @@ public class Scorpion extends LinearOpMode{
 				}
 			/**End of launcher controls**/
 
+			/**Wobble Goal Arm Controls**/
+				if (gamepad1.dpad_left) {
+					//robot.arm.setPower(1);
+					for (int i = 1; i <= 1; i++) {
+						robot.arm.setTargetPosition(100);
+						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+						robot.arm.setPower(1);
+						while (robot.arm.isBusy()) {
+							telemetry.addData("lol", "boof");
+						}
+						robot.flipper.setPower(0);
+					}
+				}
+				else if (gamepad1.dpad_right) {
+					//robot.arm.setPower(-1);
+					for (int i = 1; i <= 1; i++) {
+						robot.arm.setTargetPosition(0);
+						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+						robot.arm.setPower(1);
+						while (robot.arm.isBusy()) {
+							telemetry.addData("lol", "boof");
+						}
+						robot.flipper.setPower(0);
+					}
+				}
+				else {
+					robot.arm.setPower(0);
+				}
+
+			/**Vuforia**/
+				// check all the trackable targets to see which one (if any) is visible.
+				robot.targetVisible = false;
+				for (VuforiaTrackable trackable : allTrackables) {
+					if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+						telemetry.addData("Visible Target", trackable.getName());
+						robot.targetVisible = true;
+
+						// getUpdatedRobotLocation() will return null if no new information is available since
+						// the last time that call was made, or if the trackable is not currently visible.
+						OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+						if (robotLocationTransform != null) {
+							robot.lastLocation = robotLocationTransform;
+						}
+						break;
+					}
+				}
+
+				// Provide feedback as to where the robot is located (if we know).
+				if (robot.targetVisible) {
+					// express position (translation) of robot in inches.
+					VectorF translation = robot.lastLocation.getTranslation();
+					telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
+							translation.get(0) / robot.mmPerInch, translation.get(1) / robot.mmPerInch, translation.get(2) / robot.mmPerInch);
+
+					// express the rotation of the robot in degrees.
+					Orientation rotation = Orientation.getOrientation(robot.lastLocation, EXTRINSIC, XYZ, DEGREES);
+					telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+				}
+				else {
+					telemetry.addData("Visible Target", "none");
+				}
+
 			/**Telemetry**/
 				telemetry.addData("Flipper Encoder: ", robot.flipper.getCurrentPosition());
 				telemetry.addData("Left Servo Position", robot.anglePositionLeft);
@@ -134,5 +299,11 @@ public class Scorpion extends LinearOpMode{
 				telemetry.update();
 			/**End of telemetry**/
 		}
+
+		targetsUltimateGoal.deactivate();
+	}
+
+	private void initVuforia() {
+
 	}
 }
