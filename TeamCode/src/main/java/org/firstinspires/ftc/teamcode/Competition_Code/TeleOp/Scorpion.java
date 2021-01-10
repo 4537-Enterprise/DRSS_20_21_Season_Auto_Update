@@ -31,20 +31,22 @@ public class Scorpion extends LinearOpMode{
 
 	private InitHardware robot = new InitHardware();  //Load hardware from hardware map
 
+	WebcamName webcamName = null;
+
 	@Override
 	public void runOpMode() throws InterruptedException{
 
 		robot.init(hardwareMap); //Initialize hardware
 
 		/* Vuforia Initializations*/
-			robot.webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
+			webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
 			int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 			VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
 			parameters.vuforiaLicenseKey = robot.VUFORIA_KEY;
 
-			parameters.cameraName = robot.webcamName;
+			parameters.cameraName = webcamName;
 
 			// Make sure extended tracking is disabled for this example.
 			parameters.useExtendedTracking = false;
@@ -84,10 +86,10 @@ public class Scorpion extends LinearOpMode{
 
 			// The tower goal targets are located a quarter field length from the ends of the back perimeter wall.
 			blueTowerGoalTarget.setLocation(OpenGLMatrix
-					.translation(robot.halfField, robot.quadField, robot.mmTargetHeight)
+					.translation(0, robot.quadField, robot.mmTargetHeight)
 					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , -90)));
 			redTowerGoalTarget.setLocation(OpenGLMatrix
-					.translation(robot.halfField, -robot.quadField, robot.mmTargetHeight)
+					.translation(0, -robot.quadField, robot.mmTargetHeight)
 					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
 
 			// We need to rotate the camera around it's long axis to bring the correct camera forward.
@@ -104,8 +106,8 @@ public class Scorpion extends LinearOpMode{
 
 			// Next, translate the camera lens to where it is on the robot.
 			// In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-			final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * robot.mmPerInch;   // eg: Camera is 4 Inches in front of robot-center
-			final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * robot.mmPerInch;   // eg: Camera is 8 Inches above ground
+			final float CAMERA_FORWARD_DISPLACEMENT  = 8.0f * robot.mmPerInch;   // eg: Camera is 4 Inches in front of robot-center
+			final float CAMERA_VERTICAL_DISPLACEMENT = 4.5f * robot.mmPerInch;   // eg: Camera is 8 Inches above ground
 			final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
 
 			OpenGLMatrix robotFromCamera = OpenGLMatrix
@@ -117,7 +119,6 @@ public class Scorpion extends LinearOpMode{
 				((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
 			}
 		/* End of Vuforia Initializations */
-
 
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
@@ -262,8 +263,9 @@ public class Scorpion extends LinearOpMode{
 				robot.targetVisible = false;
 				for (VuforiaTrackable trackable : allTrackables) {
 					if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-						telemetry.addData("Visible Target", trackable.getName());
+						//telemetry.addData("Visible Target", trackable.getName());
 						robot.targetVisible = true;
+						robot.targetName = trackable.getName();
 
 						// getUpdatedRobotLocation() will return null if no new information is available since
 						// the last time that call was made, or if the trackable is not currently visible.
@@ -275,35 +277,40 @@ public class Scorpion extends LinearOpMode{
 					}
 				}
 
-				// Provide feedback as to where the robot is located (if we know).
-				if (robot.targetVisible) {
+			/**Object detection testing code**/
+				if (robot.targetVisible && robot.targetName == "Blue Tower Goal Target") {
 					// express position (translation) of robot in inches.
 					VectorF translation = robot.lastLocation.getTranslation();
-					telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
-							translation.get(0) / robot.mmPerInch, translation.get(1) / robot.mmPerInch, translation.get(2) / robot.mmPerInch);
+					robot.distanceFromTarget = -(translation.get(0) / robot.mmPerInch);
+					robot.distanceFromWall = translation.get(1) / robot.mmPerInch;
 
 					// express the rotation of the robot in degrees.
 					Orientation rotation = Orientation.getOrientation(robot.lastLocation, EXTRINSIC, XYZ, DEGREES);
-					telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+					robot.heading = rotation.thirdAngle;
+
+					telemetry.addData("Visible Target", robot.targetName);
+					telemetry.addData("Pos (inch)", "Distance From Target = %.0f", robot.distanceFromTarget);
+					telemetry.addData("Pos (inch)", "Distance From Wall = %.0f", robot.distanceFromWall);
+					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+				}
+				if (robot.targetVisible && robot.targetName != "Blue Tower Goal Target") {
+					telemetry.addData("Visible Target", robot.targetName);
 				}
 				else {
-					telemetry.addData("Visible Target", "none");
+					robot.targetName = null;
+					telemetry.addData("Visible Target", "None");
 				}
 
 			/**Telemetry**/
-				telemetry.addData("Flipper Encoder: ", robot.flipper.getCurrentPosition());
+				/*telemetry.addData("Flipper Encoder: ", robot.flipper.getCurrentPosition());
 				telemetry.addData("Left Servo Position", robot.anglePositionLeft);
 				telemetry.addData("Right Servo Position", robot.anglePositionRight);
 				telemetry.addData("Angle: ", robot.boreEncoder.getCurrentPosition());
-				telemetry.addData("Speed: ", robot.speed);
+				telemetry.addData("Speed: ", robot.speed);*/
 				telemetry.update();
 			/**End of telemetry**/
 		}
 
 		targetsUltimateGoal.deactivate();
-	}
-
-	private void initVuforia() {
-
 	}
 }
