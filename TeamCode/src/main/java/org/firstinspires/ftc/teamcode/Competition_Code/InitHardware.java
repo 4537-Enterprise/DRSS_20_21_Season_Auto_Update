@@ -64,6 +64,7 @@ public class InitHardware{
 		// Angle adjustment variables definitions
 		public double anglePositionLeft = .66;
 		public double anglePositionRight = .34;
+		public double countsPerDegree = 22.75;
 
 	/* Vuforia Identification Definitions*/
 		public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
@@ -90,7 +91,7 @@ public class InitHardware{
 		public String targetName = null;
 
 		public float distanceFromTarget = 0;
-		public float distanceFromWall = 0;
+		public float x = 0, y = 0;
 		public float heading = 0;
 
 	//Local OpMode Members

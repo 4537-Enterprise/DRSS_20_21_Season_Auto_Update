@@ -37,6 +37,15 @@ public class Scorpion extends LinearOpMode{
 	public void runOpMode() throws InterruptedException{
 
 		robot.init(hardwareMap); //Initialize hardware
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.update();
+
+		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
+		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Vuforia", "Initializing");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.update();
 
 		/* Vuforia Initializations*/
 			webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
@@ -72,25 +81,24 @@ public class Scorpion extends LinearOpMode{
 			List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 			allTrackables.addAll(targetsUltimateGoal);
 
-			//Set the position of the perimeter targets with relation to origin (center of field)
-			redAllianceTarget.setLocation(OpenGLMatrix
-					.translation(0, -robot.halfField, robot.mmTargetHeight)
-					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
+		redAllianceTarget.setLocation(OpenGLMatrix
+				.translation(0, -robot.halfField, robot.mmTargetHeight)
+				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
 
-			blueAllianceTarget.setLocation(OpenGLMatrix
-					.translation(0, robot.halfField, robot.mmTargetHeight)
-					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
-			frontWallTarget.setLocation(OpenGLMatrix
-					.translation(-robot.halfField, 0, robot.mmTargetHeight)
-					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , 90)));
+		blueAllianceTarget.setLocation(OpenGLMatrix
+				.translation(0, robot.halfField, robot.mmTargetHeight)
+				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
+		frontWallTarget.setLocation(OpenGLMatrix
+				.translation(-robot.halfField, 0, robot.mmTargetHeight)
+				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , 90)));
 
-			// The tower goal targets are located a quarter field length from the ends of the back perimeter wall.
-			blueTowerGoalTarget.setLocation(OpenGLMatrix
-					.translation(0, robot.quadField, robot.mmTargetHeight)
-					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , -90)));
-			redTowerGoalTarget.setLocation(OpenGLMatrix
-					.translation(0, -robot.quadField, robot.mmTargetHeight)
-					.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
+		// The tower goal targets are located a quarter field length from the ends of the back perimeter wall.
+		blueTowerGoalTarget.setLocation(OpenGLMatrix
+				.translation(robot.halfField, robot.quadField, robot.mmTargetHeight)
+				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0 , -90)));
+		redTowerGoalTarget.setLocation(OpenGLMatrix
+				.translation(robot.halfField, -robot.quadField, robot.mmTargetHeight)
+				.multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
 
 			// We need to rotate the camera around it's long axis to bring the correct camera forward.
 			if (robot.CAMERA_CHOICE == BACK) {
@@ -119,16 +127,20 @@ public class Scorpion extends LinearOpMode{
 				((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
 			}
 		/* End of Vuforia Initializations */
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.update();
 
-		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
-		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
 		robot.flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		robot.boreEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.launch.setPower(.5);				//Start up launcher
-
-		telemetry.addData("Drive Train: ", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
-		telemetry.addData("Payload: ", "Initialized");          // Adds telemetry to the screen to show that the payload is initialized
-		telemetry.addData("Status: ", "Ready");                 // Adds telemetry to the screen to show that the robot is ready
-		telemetry.addData("Press Play to Start ", "TeleOp");    // Adds telemetry to the screen to tell the drivers that the code is ready to start
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Launcher", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Status", "Ready");                 // Adds telemetry to the screen to show that the robot is ready
+		telemetry.addData("Press Play to Start", "TeleOp");    // Adds telemetry to the screen to tell the drivers that the code is ready to start
 		telemetry.update();
 
 		waitForStart();
@@ -217,11 +229,11 @@ public class Scorpion extends LinearOpMode{
 						robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 						robot.flipper.setPower(1);
 						while (robot.flipper.isBusy()) {
-							telemetry.addData("lol", "boof");
+							telemetry.addData("Running to", "Position");
 						}
 						robot.flipper.setTargetPosition(0);
 						while (robot.flipper.isBusy()) {
-							telemetry.addData("lol", "boof");
+							telemetry.addData("Running to", "Position");
 						}
 						robot.flipper.setPower(0);
 						sleep(250);
@@ -237,7 +249,7 @@ public class Scorpion extends LinearOpMode{
 						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 						robot.arm.setPower(1);
 						while (robot.arm.isBusy()) {
-							telemetry.addData("lol", "boof");
+							telemetry.addData("Running to", "Position");
 						}
 						robot.flipper.setPower(0);
 					}
@@ -249,7 +261,7 @@ public class Scorpion extends LinearOpMode{
 						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 						robot.arm.setPower(1);
 						while (robot.arm.isBusy()) {
-							telemetry.addData("lol", "boof");
+							telemetry.addData("Running to", "Position");
 						}
 						robot.flipper.setPower(0);
 					}
@@ -278,11 +290,12 @@ public class Scorpion extends LinearOpMode{
 				}
 
 			/**Object detection testing code**/
-				if (robot.targetVisible && robot.targetName == "Blue Tower Goal Target") {
+				if (robot.targetVisible && (robot.targetName == "Blue Tower Goal Target" || robot.targetName == "Red Tower Goal Target")) {
 					// express position (translation) of robot in inches.
 					VectorF translation = robot.lastLocation.getTranslation();
-					robot.distanceFromTarget = -(translation.get(0) / robot.mmPerInch);
-					robot.distanceFromWall = translation.get(1) / robot.mmPerInch;
+					robot.distanceFromTarget = -((translation.get(0) / robot.mmPerInch) - 72);
+					robot.x = translation.get(0) / robot.mmPerInch;
+					robot.y = translation.get(1) / robot.mmPerInch;
 
 					// express the rotation of the robot in degrees.
 					Orientation rotation = Orientation.getOrientation(robot.lastLocation, EXTRINSIC, XYZ, DEGREES);
@@ -290,11 +303,22 @@ public class Scorpion extends LinearOpMode{
 
 					telemetry.addData("Visible Target", robot.targetName);
 					telemetry.addData("Pos (inch)", "Distance From Target = %.0f", robot.distanceFromTarget);
-					telemetry.addData("Pos (inch)", "Distance From Wall = %.0f", robot.distanceFromWall);
+					telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
 					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
 				}
-				if (robot.targetVisible && robot.targetName != "Blue Tower Goal Target") {
+				else if (robot.targetVisible) {
+					// express position (translation) of robot in inches.
+					VectorF translation = robot.lastLocation.getTranslation();
+					robot.x = translation.get(0) / robot.mmPerInch;
+					robot.y = translation.get(1) / robot.mmPerInch;
+
+					// express the rotation of the robot in degrees.
+					Orientation rotation = Orientation.getOrientation(robot.lastLocation, EXTRINSIC, XYZ, DEGREES);
+					robot.heading = rotation.thirdAngle;
+
 					telemetry.addData("Visible Target", robot.targetName);
+					telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
+					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
 				}
 				else {
 					robot.targetName = null;
@@ -302,11 +326,9 @@ public class Scorpion extends LinearOpMode{
 				}
 
 			/**Telemetry**/
-				/*telemetry.addData("Flipper Encoder: ", robot.flipper.getCurrentPosition());
-				telemetry.addData("Left Servo Position", robot.anglePositionLeft);
-				telemetry.addData("Right Servo Position", robot.anglePositionRight);
-				telemetry.addData("Angle: ", robot.boreEncoder.getCurrentPosition());
-				telemetry.addData("Speed: ", robot.speed);*/
+				telemetry.addData("","");
+				telemetry.addData("Launcher Angle", (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree));
+				telemetry.addData("Speed: ", robot.speed);
 				telemetry.update();
 			/**End of telemetry**/
 		}
