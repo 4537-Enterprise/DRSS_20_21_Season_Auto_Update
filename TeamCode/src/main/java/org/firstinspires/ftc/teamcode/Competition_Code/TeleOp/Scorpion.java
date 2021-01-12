@@ -215,6 +215,7 @@ public class Scorpion extends LinearOpMode{
 
 				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 				robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
+				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
 				if (gamepad1.x) {				//Ramp up launcher
 					 robot.launch.setPower(1);  //Set launcher motor to full speed
@@ -327,7 +328,7 @@ public class Scorpion extends LinearOpMode{
 
 			/**Telemetry**/
 				telemetry.addData("","");
-				telemetry.addData("Launcher Angle", (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree));
+				telemetry.addData("Launcher Angle", robot.launcherAngle);
 				telemetry.addData("Speed: ", robot.speed);
 				telemetry.update();
 			/**End of telemetry**/

@@ -65,6 +65,7 @@ public class InitHardware{
 		public double anglePositionLeft = .66;
 		public double anglePositionRight = .34;
 		public double countsPerDegree = 22.75;
+		public int launcherAngle = 0;
 
 	/* Vuforia Identification Definitions*/
 		public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
