@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.teamcode.Competition_Code.InitHardware;
 
 import java.util.ArrayList;
@@ -132,9 +134,21 @@ public class Scorpion extends LinearOpMode{
 		telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.update();
 
+		/* Start of Tensor Flow Initializations*/
+			int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+					"tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+			TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+			tfodParameters.minResultConfidence = 0.8f;
+			robot.tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, robot.vuforia);
+			robot.tfod.loadModelFromAsset(robot.TFOD_MODEL_ASSET, robot.LABEL_FIRST_ELEMENT, robot.LABEL_SECOND_ELEMENT);
+
+			robot.activateTFOD();
+
 		robot.flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.boreEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
 		robot.launch.setPower(.5);				//Start up launcher
+		robot.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -157,9 +171,9 @@ public class Scorpion extends LinearOpMode{
 				float gamepad1RightX = -gamepad1.right_stick_x;     // Sets the gamepads right sticks x position to a float so that we can easily track the stick
 
 				// Mechanum formulas
-				double FrontRight = gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontRight = gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double FrontLeft = -gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackRight = gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 
 				// sets speed
@@ -189,52 +203,47 @@ public class Scorpion extends LinearOpMode{
 			/**End of Mechanum Controls**/
 
 			/**Intake Controls**/
-				if (gamepad1.b) {
-					robot.intake.setPower(1); //Start running intake motor
+				if (gamepad2.b) {
+					robot.intakeMotor.setPower(-1); //Start running intake motor
 				}
 				else {
-					robot.intake.setPower(0); //Stop running intake motor
+					robot.intakeMotor.setPower(0); //Stop running intake motor
 				}
 			/**End of intake controls**/
 
 			/**Launcher Controls**/
-				if (gamepad1.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
+				if (gamepad2.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
 					robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
 					robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
 				}
 
-				if (gamepad1.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) { 										//Move the launcher down
+				if (gamepad2.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) { 										//Move the launcher down
 					robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
 					robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
-				}
-
-				if (gamepad1.y) { 					//Put the launcher at its lowest point
-					robot.anglePositionLeft = .66;	//Set servo positions to .5
-					robot.anglePositionRight = .34;	//Set servo positions to .5
 				}
 
 				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 				robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
-				if (gamepad1.x) {				//Ramp up launcher
+				if (gamepad2.x) {				//Ramp up launcher
 					 robot.launch.setPower(1);  //Set launcher motor to full speed
 				}
 				else {							//Slow down launcher when not shooting
 					robot.launch.setPower(.5);	//Set launcher motor to half speed
 				}
 
-				if (gamepad1.a) { //Activate Pusher
+				if (gamepad2.a) { //Activate Pusher
 					for (int i = 1; i <= 3; i++) {
 						robot.flipper.setTargetPosition(65);
 						robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 						robot.flipper.setPower(1);
 						while (robot.flipper.isBusy()) {
-							telemetry.addData("Running to", "Position");
+
 						}
 						robot.flipper.setTargetPosition(0);
 						while (robot.flipper.isBusy()) {
-							telemetry.addData("Running to", "Position");
+
 						}
 						robot.flipper.setPower(0);
 						sleep(250);
@@ -243,40 +252,58 @@ public class Scorpion extends LinearOpMode{
 			/**End of launcher controls**/
 
 			/**Wobble Goal Arm Controls**/
-				if (gamepad1.dpad_left) {
+				if (gamepad1.dpad_up) {
 					//robot.arm.setPower(1);
 					for (int i = 1; i <= 1; i++) {
-						robot.arm.setTargetPosition(100);
+						robot.arm.setTargetPosition(75);
 						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 						robot.arm.setPower(1);
 						while (robot.arm.isBusy()) {
-							telemetry.addData("Running to", "Position");
+
 						}
-						robot.flipper.setPower(0);
+						robot.arm.setPower(-.1);
+					}
+				}
+				else if (gamepad1.dpad_down) {
+					//robot.arm.setPower(-1);
+					for (int i = 1; i <= 1; i++) {
+						robot.arm.setTargetPosition(15);
+						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+						robot.arm.setPower(1);
+						while (robot.arm.isBusy()) {
+
+						}
+						robot.arm.setPower(-.1);
 					}
 				}
 				else if (gamepad1.dpad_right) {
 					//robot.arm.setPower(-1);
 					for (int i = 1; i <= 1; i++) {
-						robot.arm.setTargetPosition(0);
+						robot.arm.setTargetPosition(105);
 						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 						robot.arm.setPower(1);
 						while (robot.arm.isBusy()) {
-							telemetry.addData("Running to", "Position");
+
 						}
-						robot.flipper.setPower(0);
+						robot.arm.setPower(-.1);
 					}
 				}
 				else {
-					robot.arm.setPower(0);
+					robot.arm.setPower(-.1);
+				}
+
+				if (gamepad1.a) {
+					robot.gripper.setPosition(1);
+				}
+				if (gamepad1.b) {
+					robot.gripper.setPosition(0);
 				}
 
 			/**Vuforia**/
-				// check all the trackable targets to see which one (if any) is visible.
+				/*// check all the trackable targets to see which one (if any) is visible.
 				robot.targetVisible = false;
 				for (VuforiaTrackable trackable : allTrackables) {
 					if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-						//telemetry.addData("Visible Target", trackable.getName());
 						robot.targetVisible = true;
 						robot.targetName = trackable.getName();
 
@@ -288,10 +315,10 @@ public class Scorpion extends LinearOpMode{
 						}
 						break;
 					}
-				}
+				}*/
 
 			/**Object detection testing code**/
-				if (robot.targetVisible && (robot.targetName == "Blue Tower Goal Target" || robot.targetName == "Red Tower Goal Target")) {
+				/*if (robot.targetVisible && (robot.targetName == "Blue Tower Goal Target" || robot.targetName == "Red Tower Goal Target")) {
 					// express position (translation) of robot in inches.
 					VectorF translation = robot.lastLocation.getTranslation();
 					robot.distanceFromTarget = -((translation.get(0) / robot.mmPerInch) - 72);
@@ -324,16 +351,37 @@ public class Scorpion extends LinearOpMode{
 				else {
 					robot.targetName = null;
 					telemetry.addData("Visible Target", "None");
+				}*/
+
+			/**TFOD Code**/
+
+			if (robot.tfod != null) {
+				// getUpdatedRecognitions() will return null if no new information is available since
+				// the last time that call was made.
+				List<Recognition> updatedRecognitions = robot.tfod.getUpdatedRecognitions();
+				if (updatedRecognitions != null) {
+					telemetry.addData("# Object Detected", updatedRecognitions.size());
+					// step through the list of recognitions and display boundary info.
+					int i = 0;
+					for (Recognition recognition : updatedRecognitions) {
+						telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+						telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+								recognition.getLeft(), recognition.getTop());
+						telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+								recognition.getRight(), recognition.getBottom());
+					}
 				}
+			}
 
 			/**Telemetry**/
 				telemetry.addData("","");
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
-				telemetry.addData("Speed: ", robot.speed);
+				telemetry.addData("Speed", robot.speed);
 				telemetry.update();
 			/**End of telemetry**/
 		}
 
 		targetsUltimateGoal.deactivate();
+		robot.deactivateTFOD();
 	}
 }

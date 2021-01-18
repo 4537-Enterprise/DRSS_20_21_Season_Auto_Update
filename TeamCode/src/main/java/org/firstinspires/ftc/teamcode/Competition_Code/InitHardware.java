@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,9 +48,9 @@ public class InitHardware{
 
 	/* Payload definitions */
 		// Launcher and intake motor definitions
-		public DcMotor intake;      // Defines the intake motor
 		public DcMotor launch;      // Defines the launcher motor
 		public DcMotor flipper;     // Defines the flipper motor
+		public DcMotor intakeMotor; // Defines the intake Motor
 
 		// Angle adjustment servo definitions
 		public Servo angleAdjustRight;
@@ -60,6 +61,7 @@ public class InitHardware{
 
 		// Wobble Goal Arm definitions
 		public DcMotor arm;
+		public Servo gripper;
 
 		// Angle adjustment variables definitions
 		public double anglePositionLeft = .66;
@@ -91,6 +93,13 @@ public class InitHardware{
 
 		public String targetName = null;
 
+	/* Tensor Flow Initializations */
+		public static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
+		public static final String LABEL_FIRST_ELEMENT = "Quad";
+		public static final String LABEL_SECOND_ELEMENT = "Single";
+
+		public TFObjectDetector tfod;
+
 		public float distanceFromTarget = 0;
 		public float x = 0, y = 0;
 		public float heading = 0;
@@ -120,6 +129,12 @@ public class InitHardware{
 		motorBackRight.setDirection(DcMotor.Direction.REVERSE);     // Sets the back right motors direction to reverse
 		motorBackLeft.setDirection(DcMotor.Direction.REVERSE);      // Sets the back left motors direction to reverse
 
+		//Motor Brake Definition
+		motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 		//Odometer Initialization
 		leftEncoder = hwMap.get(DcMotor.class, "FL");
 		rightEncoder = hwMap.get(DcMotor.class, "FR");
@@ -131,28 +146,47 @@ public class InitHardware{
 		centerEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
 
 		//Lift and Intake Motor Initialization
-		intake = hwMap.dcMotor.get("intake");            // Initializes the intake motor from configuration
-		intake.setDirection(DcMotor.Direction.REVERSE);  // Sets the intake motor direction to forward
 		launch = hwMap.dcMotor.get("launch");            // Initializes launcher motor from configuration
 		launch.setDirection(DcMotor.Direction.FORWARD);  // Sets the launcher motor direction to forward
 		flipper = hwMap.get(DcMotorEx.class, "flipper");			 // Initializes flipper motor from configuration
 		flipper.setDirection(DcMotor.Direction.REVERSE); // Sets the flipper motor direction to forward
+		intakeMotor = hwMap.get(DcMotor.class, "intakeMotor"); // Initializes intake motor from configuration
+		intakeMotor.setDirection(DcMotor.Direction.FORWARD); // Sets the intake motor direction to reverse
+		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 		//Angle Adjustment Servo Initialization
 		angleAdjustLeft = hwMap.servo.get("angleAdjustL");
 		angleAdjustRight = hwMap.servo.get("angleAdjustR");
 
 		//Launcher Encoder Initializations
-		boreEncoder = hwMap.get(DcMotor.class, "intake");
-		boreEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
-
-		//Launcher Encoder Direction Initialization
+		boreEncoder = hwMap.get(DcMotor.class, "intakeMotor");
 		boreEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
 
 		//Wobble Goal Arm Initialization
 		arm = hwMap.get(DcMotor.class, "arm");
 		arm.setDirection(DcMotor.Direction.REVERSE);
 		arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		gripper = hwMap.servo.get("gripper");
+	}
+
+	public void activateTFOD() {
+		if (tfod != null) {
+			tfod.activate();
+
+			// The TensorFlow software will scale the input images from the camera to a lower resolution.
+			// This can result in lower detection accuracy at longer distances (> 55cm or 22").
+			// If your target is at distance greater than 50 cm (20") you can adjust the magnification value
+			// to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
+			// should be set to the value of the images used to create the TensorFlow Object Detection model
+			// (typically 16/9).
+			tfod.setZoom(2.5, 16.0/9.0);
+		}
+	}
+
+	public void deactivateTFOD() {
+		if (tfod != null) {
+			tfod.shutdown();
+		}
 	}
 }
 
