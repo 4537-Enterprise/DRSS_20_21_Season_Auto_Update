@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -103,6 +104,8 @@ public class InitHardware{
 		public float distanceFromTarget = 0;
 		public float x = 0, y = 0;
 		public float heading = 0;
+		public double expectedAngle = 0;
+		public double actualAngle = 0;
 
 	//Local OpMode Members
 	HardwareMap hwMap =  null;
@@ -186,6 +189,45 @@ public class InitHardware{
 	public void deactivateTFOD() {
 		if (tfod != null) {
 			tfod.shutdown();
+		}
+	}
+
+	public void setLauncherAngle(float angle) {
+		for (float i = angle; ((boreEncoder.getCurrentPosition()/countsPerDegree) < (angle/2.5)); i = angle) {
+			anglePositionLeft -= 0.01;			//Subtract from current angle on servo
+			anglePositionRight += 0.01;			//Add from current angle on servo
+			angleAdjustLeft.setPosition(anglePositionLeft);  	//Set Servo Position
+			angleAdjustRight.setPosition(anglePositionRight);   //Set Servo Position
+		}
+		for (float i = angle; ((boreEncoder.getCurrentPosition()/countsPerDegree) < angle); i = angle) {
+			anglePositionLeft -= 0.001;			//Subtract from current angle on servo
+			anglePositionRight += 0.001;			//Add from current angle on servo
+			angleAdjustLeft.setPosition(anglePositionLeft);  	//Set Servo Position
+			angleAdjustRight.setPosition(anglePositionRight);   //Set Servo Position
+		}
+	}
+
+	public void zeroLauncherAngle() {
+		anglePositionLeft = .66;
+		anglePositionRight = .34;
+		angleAdjustLeft.setPosition(anglePositionLeft);  	//Set Servo Position
+		angleAdjustRight.setPosition(anglePositionRight);   //Set Servo Position
+	}
+
+	public void launch(int rings) throws InterruptedException{
+		for (int i = 1; i <= rings; i++) {
+			flipper.setTargetPosition(65);
+			flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			flipper.setPower(1);
+			while (flipper.isBusy()) {
+
+			}
+			flipper.setTargetPosition(0);
+			while (flipper.isBusy()) {
+
+			}
+			flipper.setPower(0);
+			sleep(250);
 		}
 	}
 }

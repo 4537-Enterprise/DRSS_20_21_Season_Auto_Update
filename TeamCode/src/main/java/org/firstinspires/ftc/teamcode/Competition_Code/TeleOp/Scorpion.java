@@ -213,17 +213,19 @@ public class Scorpion extends LinearOpMode{
 
 			/**Launcher Controls**/
 				if (gamepad2.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
-					robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
-					robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
+					//robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
+					//robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
+					robot.setLauncherAngle(25);
 				}
 
 				if (gamepad2.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) { 										//Move the launcher down
-					robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
-					robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
+					//robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
+					//robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
+					robot.zeroLauncherAngle();
 				}
 
-				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
-				robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
+				//robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
+				//robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
 				if (gamepad2.x) {				//Ramp up launcher
@@ -234,20 +236,7 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.a) { //Activate Pusher
-					for (int i = 1; i <= 3; i++) {
-						robot.flipper.setTargetPosition(65);
-						robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-						robot.flipper.setPower(1);
-						while (robot.flipper.isBusy()) {
-
-						}
-						robot.flipper.setTargetPosition(0);
-						while (robot.flipper.isBusy()) {
-
-						}
-						robot.flipper.setPower(0);
-						sleep(250);
-					}
+					autoAim(robot.distanceFromTarget);
 				}
 			/**End of launcher controls**/
 
@@ -300,7 +289,7 @@ public class Scorpion extends LinearOpMode{
 				}
 
 			/**Vuforia**/
-				/*// check all the trackable targets to see which one (if any) is visible.
+				// check all the trackable targets to see which one (if any) is visible.
 				robot.targetVisible = false;
 				for (VuforiaTrackable trackable : allTrackables) {
 					if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
@@ -315,10 +304,10 @@ public class Scorpion extends LinearOpMode{
 						}
 						break;
 					}
-				}*/
+				}
 
 			/**Object detection testing code**/
-				/*if (robot.targetVisible && (robot.targetName == "Blue Tower Goal Target" || robot.targetName == "Red Tower Goal Target")) {
+				if (robot.targetVisible && (robot.targetName == "Blue Tower Goal Target" || robot.targetName == "Red Tower Goal Target")) {
 					// express position (translation) of robot in inches.
 					VectorF translation = robot.lastLocation.getTranslation();
 					robot.distanceFromTarget = -((translation.get(0) / robot.mmPerInch) - 72);
@@ -351,11 +340,11 @@ public class Scorpion extends LinearOpMode{
 				else {
 					robot.targetName = null;
 					telemetry.addData("Visible Target", "None");
-				}*/
+				}
 
 			/**TFOD Code**/
 
-			if (robot.tfod != null) {
+			/*if (robot.tfod != null) {
 				// getUpdatedRecognitions() will return null if no new information is available since
 				// the last time that call was made.
 				List<Recognition> updatedRecognitions = robot.tfod.getUpdatedRecognitions();
@@ -371,17 +360,30 @@ public class Scorpion extends LinearOpMode{
 								recognition.getRight(), recognition.getBottom());
 					}
 				}
-			}
+			}*/
 
 			/**Telemetry**/
 				telemetry.addData("","");
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
 				telemetry.addData("Speed", robot.speed);
+				telemetry.addData("Expected Angle", robot.expectedAngle);
+				telemetry.addData("Actual Angle", robot.actualAngle);
 				telemetry.update();
 			/**End of telemetry**/
 		}
 
 		targetsUltimateGoal.deactivate();
 		robot.deactivateTFOD();
+	}
+
+	private void autoAim(float distance) throws InterruptedException{
+		float angle = (float) ((-0.119*distance)+25);
+		robot.expectedAngle = angle;
+		robot.launch.setPower(1);
+		robot.setLauncherAngle(angle);
+		robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
+		robot.launch(3);
+		robot.launch.setPower(.5);
+		robot.zeroLauncherAngle();
 	}
 }
