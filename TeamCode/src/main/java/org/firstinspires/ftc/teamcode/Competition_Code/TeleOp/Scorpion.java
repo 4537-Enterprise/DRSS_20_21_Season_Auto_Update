@@ -142,7 +142,7 @@ public class Scorpion extends LinearOpMode{
 			robot.tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, robot.vuforia);
 			robot.tfod.loadModelFromAsset(robot.TFOD_MODEL_ASSET, robot.LABEL_FIRST_ELEMENT, robot.LABEL_SECOND_ELEMENT);
 
-			robot.activateTFOD();
+			//robot.activateTFOD();
 
 		robot.flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.boreEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -171,10 +171,15 @@ public class Scorpion extends LinearOpMode{
 				float gamepad1RightX = -gamepad1.right_stick_x;     // Sets the gamepads right sticks x position to a float so that we can easily track the stick
 
 				// Mechanum formulas
-				double FrontRight = gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				/*double FrontRight = gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double FrontLeft = -gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				*/
+				double FrontRight = -gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontLeft = gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double BackRight = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double BackLeft = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 
 				// sets speed
 				robot.frontLeft = Range.clip(Math.pow(FrontRight, 3), -robot.speed, robot.speed);    // Slows down the motor and sets its max/min speed to the double "speed"
@@ -213,19 +218,19 @@ public class Scorpion extends LinearOpMode{
 
 			/**Launcher Controls**/
 				if (gamepad2.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
-					//robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
-					//robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
-					robot.setLauncherAngle(25);
+					robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
+					robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
+					//robot.setLauncherAngle(25);
 				}
 
 				if (gamepad2.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) { 										//Move the launcher down
-					//robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
-					//robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
-					robot.zeroLauncherAngle();
+					robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
+					robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
+					//robot.zeroLauncherAngle();
 				}
 
-				//robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
-				//robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
+				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
+				robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
 				if (gamepad2.x) {				//Ramp up launcher
@@ -236,6 +241,7 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.a) { //Activate Pusher
+					//robot.launch(3);
 					autoAim(robot.distanceFromTarget);
 				}
 			/**End of launcher controls**/
@@ -328,6 +334,7 @@ public class Scorpion extends LinearOpMode{
 					VectorF translation = robot.lastLocation.getTranslation();
 					robot.x = translation.get(0) / robot.mmPerInch;
 					robot.y = translation.get(1) / robot.mmPerInch;
+					robot.distanceFromTarget = 0;
 
 					// express the rotation of the robot in degrees.
 					Orientation rotation = Orientation.getOrientation(robot.lastLocation, EXTRINSIC, XYZ, DEGREES);
@@ -339,6 +346,7 @@ public class Scorpion extends LinearOpMode{
 				}
 				else {
 					robot.targetName = null;
+					robot.distanceFromTarget = 0;
 					telemetry.addData("Visible Target", "None");
 				}
 
@@ -373,13 +381,17 @@ public class Scorpion extends LinearOpMode{
 		}
 
 		targetsUltimateGoal.deactivate();
-		robot.deactivateTFOD();
+		//robot.deactivateTFOD();
 	}
 
 	private void autoAim(float distance) throws InterruptedException{
-		float angle = (float) ((-0.119*distance)+25);
+		if (distance == 0) {
+			return;
+		}
+		float angle = (float) ((0.004*Math.pow((distance-76.5),2))+20.5);
 		robot.expectedAngle = angle;
 		robot.launch.setPower(1);
+		sleep(450);
 		robot.setLauncherAngle(angle);
 		robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 		robot.launch(3);

@@ -128,9 +128,9 @@ public class InitHardware{
 
 		//Motor Direction Initialization
 		motorFrontRight.setDirection(DcMotor.Direction.REVERSE);    // Sets the front right motors direction to reverse
-		motorFrontLeft.setDirection(DcMotor.Direction.REVERSE);     // Sets the front left motors direction to reverse
+		motorFrontLeft.setDirection(DcMotor.Direction.FORWARD);     // Sets the front left motors direction to reverse
 		motorBackRight.setDirection(DcMotor.Direction.REVERSE);     // Sets the back right motors direction to reverse
-		motorBackLeft.setDirection(DcMotor.Direction.REVERSE);      // Sets the back left motors direction to reverse
+		motorBackLeft.setDirection(DcMotor.Direction.FORWARD);      // Sets the back left motors direction to reverse
 
 		//Motor Brake Definition
 		motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
