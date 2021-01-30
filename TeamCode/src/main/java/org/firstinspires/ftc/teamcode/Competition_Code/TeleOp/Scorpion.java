@@ -17,7 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.teamcode.Competition_Code.Auto.ScorpionAuto;
 import org.firstinspires.ftc.teamcode.Competition_Code.InitHardware;
+import org.firstinspires.ftc.teamcode.Competition_Code.encoders;
 
 import java.util.ArrayList;
 import java.util.List;
