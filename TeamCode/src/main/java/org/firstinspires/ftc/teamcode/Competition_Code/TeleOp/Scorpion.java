@@ -146,8 +146,9 @@ public class Scorpion extends LinearOpMode{
 
 		robot.flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.boreEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		robot.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-		robot.launch.setPower(.5);				//Start up launcher
+		robot.launch.setVelocity(0);				//Start up launcher
 		robot.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -208,8 +209,10 @@ public class Scorpion extends LinearOpMode{
 			/**End of Mechanum Controls**/
 
 			/**Intake Controls**/
-				if (gamepad2.b) {
+				if (gamepad2.left_trigger > .25) {
 					robot.intakeMotor.setPower(-1); //Start running intake motor
+					robot.anglePositionLeft = .26;
+					robot.anglePositionRight = .74;
 				}
 				else {
 					robot.intakeMotor.setPower(0); //Stop running intake motor
@@ -218,15 +221,18 @@ public class Scorpion extends LinearOpMode{
 
 			/**Launcher Controls**/
 				if (gamepad2.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
-					robot.anglePositionLeft = robot.anglePositionLeft - 0.01;  								//Subtract from current angle on servo
-					robot.anglePositionRight = robot.anglePositionRight + 0.01;								//Add from current angle on servo
+					robot.anglePositionLeft = robot.anglePositionLeft - 0.005;  								//Subtract from current angle on servo
+					robot.anglePositionRight = robot.anglePositionRight + 0.005;								//Add from current angle on servo
 					//robot.setLauncherAngle(25);
 				}
 
-				if (gamepad2.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) { 										//Move the launcher down
-					robot.anglePositionLeft = robot.anglePositionLeft + 0.01;  	//Add from current angle on servo
-					robot.anglePositionRight = robot.anglePositionRight - 0.01;	//Subtract from current angle on servo
+				if (gamepad2.dpad_down  && robot.anglePositionRight >= .34 && robot.anglePositionLeft <= .66) {
+					//Move the launcher down
+					//robot.anglePositionLeft = robot.anglePositionLeft + 0.005;  	//Add from current angle on servo
+					//robot.anglePositionRight = robot.anglePositionRight - 0.005;	//Subtract from current angle on servo
 					//robot.zeroLauncherAngle();
+					robot.anglePositionLeft = .66;
+					robot.anglePositionRight = .34;
 				}
 
 				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
@@ -234,64 +240,36 @@ public class Scorpion extends LinearOpMode{
 				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
 				if (gamepad2.x) {				//Ramp up launcher
-					 robot.launch.setPower(1);  //Set launcher motor to full speed
+					 robot.launch.setVelocity(2800);  //Set launcher motor to full speed
 				}
 				else {							//Slow down launcher when not shooting
-					robot.launch.setPower(.5);	//Set launcher motor to half speed
+					robot.launch.setVelocity(0);	//Set launcher motor to half speed
 				}
 
-				if (gamepad2.a) { //Activate Pusher
+				if (gamepad2.right_trigger > .25) { //Activate Pusher
 					//robot.launch(3);
 					autoAim(robot.distanceFromTarget);
 				}
 			/**End of launcher controls**/
 
 			/**Wobble Goal Arm Controls**/
-				if (gamepad1.dpad_up) {
-					//robot.arm.setPower(1);
-					for (int i = 1; i <= 1; i++) {
-						robot.arm.setTargetPosition(75);
-						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-						robot.arm.setPower(1);
-						while (robot.arm.isBusy()) {
-
-						}
-						robot.arm.setPower(-.1);
-					}
+				if (gamepad2.a && robot.armDown) {
+					armUp();
 				}
-				else if (gamepad1.dpad_down) {
-					//robot.arm.setPower(-1);
-					for (int i = 1; i <= 1; i++) {
-						robot.arm.setTargetPosition(15);
-						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-						robot.arm.setPower(1);
-						while (robot.arm.isBusy()) {
-
-						}
-						robot.arm.setPower(-.1);
-					}
-				}
-				else if (gamepad1.dpad_right) {
-					//robot.arm.setPower(-1);
-					for (int i = 1; i <= 1; i++) {
-						robot.arm.setTargetPosition(105);
-						robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-						robot.arm.setPower(1);
-						while (robot.arm.isBusy()) {
-
-						}
-						robot.arm.setPower(-.1);
-					}
+				else if (gamepad2.a) {
+					armDown();
 				}
 				else {
-					robot.arm.setPower(-.1);
+					robot.arm.setPower(0);
 				}
 
-				if (gamepad1.a) {
-					robot.gripper.setPosition(1);
-				}
-				if (gamepad1.b) {
+				if (gamepad2.b && robot.gripperOpen) {
 					robot.gripper.setPosition(0);
+					robot.gripperOpen = false;
+				}
+				else if (gamepad2.y) {
+					robot.gripper.setPosition(1);
+					robot.gripperOpen = true;
 				}
 
 			/**Vuforia**/
@@ -376,6 +354,8 @@ public class Scorpion extends LinearOpMode{
 				telemetry.addData("Speed", robot.speed);
 				telemetry.addData("Expected Angle", robot.expectedAngle);
 				telemetry.addData("Actual Angle", robot.actualAngle);
+				telemetry.addData("Left Angle", robot.angleAdjustLeft.getPosition());
+				telemetry.addData("Right Angle", robot.angleAdjustRight.getPosition());
 				telemetry.update();
 			/**End of telemetry**/
 		}
@@ -388,14 +368,49 @@ public class Scorpion extends LinearOpMode{
 		if (distance == 0) {
 			return;
 		}
-		float angle = (float) ((0.004*Math.pow((distance-76.5),2))+20.5);
+		robot.stopMotors();
+		float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
 		robot.expectedAngle = angle;
-		robot.launch.setPower(1);
-		sleep(450);
+		robot.launch.setVelocity(2800);
+		sleep(700);
 		robot.setLauncherAngle(angle);
 		robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 		robot.launch(3);
-		robot.launch.setPower(.5);
+		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
+	}
+
+	public void armDown() {
+		robot.stopMotors();
+		robot.armDown = true;
+		robot.arm.setTargetPosition(115);
+		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		robot.arm.setPower(1);
+		while (robot.arm.isBusy()) {
+			if (gamepad2.back) {
+				robot.gripper.setPosition(.65);
+				sleep(250);
+				robot.gripper.setPosition(1);
+				robot.gripperOpen = true;
+				return;
+			}
+		}
+		robot.arm.setPower(0);
+		robot.gripper.setPosition(1);
+		robot.gripperOpen = true;
+	}
+
+	public void armUp() {
+		robot.stopMotors();
+		robot.arm.setTargetPosition(15);
+		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		robot.arm.setPower(1);
+		while (robot.arm.isBusy()) {
+			if (gamepad2.back) {
+				return;
+			}
+		}
+		robot.arm.setPower(0);
+		robot.armDown = false;
 	}
 }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -49,7 +50,7 @@ public class InitHardware{
 
 	/* Payload definitions */
 		// Launcher and intake motor definitions
-		public DcMotor launch;      // Defines the launcher motor
+		public DcMotorEx launch;      // Defines the launcher motor
 		public DcMotor flipper;     // Defines the flipper motor
 		public DcMotor intakeMotor; // Defines the intake Motor
 
@@ -63,6 +64,8 @@ public class InitHardware{
 		// Wobble Goal Arm definitions
 		public DcMotor arm;
 		public Servo gripper;
+		public boolean armDown = true;
+		public boolean gripperOpen = false;
 
 		// Angle adjustment variables definitions
 		public double anglePositionLeft = .66;
@@ -149,9 +152,10 @@ public class InitHardware{
 		centerEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
 
 		//Lift and Intake Motor Initialization
-		launch = hwMap.dcMotor.get("launch");            // Initializes launcher motor from configuration
-		launch.setDirection(DcMotor.Direction.FORWARD);  // Sets the launcher motor direction to forward
-		flipper = hwMap.get(DcMotorEx.class, "flipper");			 // Initializes flipper motor from configuration
+		launch = hwMap.get(DcMotorEx.class, "launch");            // Initializes launcher motor from configuration
+		launch.setDirection(DcMotorEx.Direction.FORWARD);  // Sets the launcher motor direction to forward
+		launch.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+		flipper = hwMap.get(DcMotor.class, "flipper");			 // Initializes flipper motor from configuration
 		flipper.setDirection(DcMotor.Direction.REVERSE); // Sets the flipper motor direction to forward
 		intakeMotor = hwMap.get(DcMotor.class, "intakeMotor"); // Initializes intake motor from configuration
 		intakeMotor.setDirection(DcMotor.Direction.FORWARD); // Sets the intake motor direction to reverse
@@ -222,13 +226,20 @@ public class InitHardware{
 			while (flipper.isBusy()) {
 
 			}
-			flipper.setTargetPosition(0);
+			flipper.setTargetPosition(-2);
 			while (flipper.isBusy()) {
 
 			}
 			flipper.setPower(0);
 			sleep(250);
 		}
+	}
+
+	public void stopMotors() {
+		motorFrontRight.setPower(0);   // Sets the front right motors speed to the previous double
+		motorFrontLeft.setPower(0);     // Sets the front left motors speed to the previous double
+		motorBackRight.setPower(0);     // Sets the back right motors speed to the previous double
+		motorBackLeft.setPower(0);       // Sets the back left motors speed to the previous double
 	}
 }
 
