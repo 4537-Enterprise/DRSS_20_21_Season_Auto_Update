@@ -356,8 +356,9 @@ public class Scorpion extends LinearOpMode{
 				telemetry.addData("Speed", robot.speed);
 				telemetry.addData("Expected Angle", robot.expectedAngle);
 				telemetry.addData("Actual Angle", robot.actualAngle);
-				telemetry.addData("Left Angle", robot.angleAdjustLeft.getPosition());
-				telemetry.addData("Right Angle", robot.angleAdjustRight.getPosition());
+				telemetry.addData("Left Encoder", robot.leftEncoder.getCurrentPosition());
+				telemetry.addData("Right Encoder", robot.rightEncoder.getCurrentPosition());
+				telemetry.addData("Center Encoder", robot.centerEncoder.getCurrentPosition());
 				telemetry.update();
 			/**End of telemetry**/
 		}

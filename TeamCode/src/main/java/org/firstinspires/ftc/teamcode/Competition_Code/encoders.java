@@ -6,10 +6,6 @@ public class encoders extends LinearOpMode{
 
 	private InitHardware robot = new InitHardware();  //Load hardware from hardware map
 
-	int leftStartPosition;
-	int rightStartPosition;
-	int centerStartPositon;
-
 	int newLeftTarget;
 	int newRightTarget;
 	int newCenterTarget;
@@ -19,10 +15,7 @@ public class encoders extends LinearOpMode{
 		robot.init(hardwareMap); //Initialize hardware
 	}
 
-	public void drive(double speed, double Inches, int directionModifier) {
-
-		leftStartPosition = robot.leftEncoder.getCurrentPosition();
-		rightStartPosition = robot.rightEncoder.getCurrentPosition();
+	public void drive (double speed, double Inches, int directionModifier) {
 
 		// Ensure that the opmode is still active
 		if (opModeIsActive()){
@@ -58,23 +51,20 @@ public class encoders extends LinearOpMode{
 
 	}
 
-	public void turn(double speed, double Angle, int directionModifier) {
-
-		leftStartPosition = robot.leftEncoder.getCurrentPosition();
-		rightStartPosition = robot.rightEncoder.getCurrentPosition();
+	public void turn (double speed, double Angle, int directionModifier) {
 
 		// Ensure that the opmode is still active
 		if (opModeIsActive()){
 
 			// Math to calculate each target position for the motors
-			newLeftTarget = robot.leftEncoder.getCurrentPosition() + (int) (Angle * robot.COUNTS_PER_INCH);
-			newRightTarget = robot.rightEncoder.getCurrentPosition() + (int) (Angle * robot.COUNTS_PER_INCH);
+			newLeftTarget = robot.leftEncoder.getCurrentPosition() + (int) (Angle * robot.COUNTS_PER_DEGREE);
+			newRightTarget = robot.rightEncoder.getCurrentPosition() - (int) (Angle * robot.COUNTS_PER_DEGREE);
 
 			// reset the timeout time and start motion.
 			robot.motorFrontLeft.setPower(speed*directionModifier);
-			robot.motorFrontRight.setPower(speed*directionModifier);
+			robot.motorFrontRight.setPower(-speed*directionModifier);
 			robot.motorBackLeft.setPower(speed*directionModifier);
-			robot.motorBackRight.setPower(speed*directionModifier);
+			robot.motorBackRight.setPower(-speed*directionModifier);
 
 			// keep looping while we are still active, and there is time left, and both motors are running.
 			// Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -97,10 +87,44 @@ public class encoders extends LinearOpMode{
 
 	}
 
+	public void strafe (double speed, double Inches, int directionModifier) {
+
+		// Ensure that the opmode is still active
+		if (opModeIsActive()){
+
+			// Math to calculate each target position for the motors
+			newCenterTarget = robot.centerEncoder.getCurrentPosition() + (int) (Inches * robot.COUNTS_PER_INCH);
+
+			// reset the timeout time and start motion.
+			robot.motorFrontLeft.setPower(speed*directionModifier);
+			robot.motorFrontRight.setPower(-speed*directionModifier);
+			robot.motorBackLeft.setPower(-speed*directionModifier);
+			robot.motorBackRight.setPower(speed*directionModifier);
+
+			// keep looping while we are still active, and there is time left, and both motors are running.
+			// Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+			// its target position, the motion will stop.  This is "safer" in the event that the robot will
+			// always end the motion as soon as possible.
+			// However, if you require that BOTH motors have finished their moves before the robot continues
+			// onto the next step, use (isBusy() || isBusy()) in the loop test.
+			while (opModeIsActive() && (centerIsBusy(directionModifier))){
+
+				// Display it for the driver.
+				telemetry.addData("Motor Paths", "Running at %7d", //Tells us where we are
+						robot.centerEncoder.getCurrentPosition()); //Left Position
+				telemetry.update();
+			}
+
+			// Stop all motion;
+			robot.stopMotors();
+		}
+
+	}
+
 	private boolean leftIsBusy(int direction) {
 
 		if (direction == 1) { 																		// If we are moving forward
-			if ((robot.leftEncoder.getCurrentPosition()-leftStartPosition) >= newLeftTarget) { 		// Check if we have passed our target
+			if ((robot.leftEncoder.getCurrentPosition()) >= newLeftTarget) { 		// Check if we have passed our target
 				return false; 																		// Send stop command
 			}
 			else { 																					// If we haven't passed our target
@@ -109,7 +133,7 @@ public class encoders extends LinearOpMode{
 		}
 
 		if (direction == -1) { // If we are moving backwards
-			if ((robot.leftEncoder.getCurrentPosition()-leftStartPosition) <= newLeftTarget) { 		// Check if we have passed our target
+			if ((robot.leftEncoder.getCurrentPosition()) <= newLeftTarget) { 		// Check if we have passed our target
 				return false; 																		// Send stop command
 			}
 			else { 																					// If we haven't passed our target
@@ -122,7 +146,7 @@ public class encoders extends LinearOpMode{
 	private boolean rightIsBusy(int direction) {
 
 		if (direction == 1) { 																		// If we are moving forward
-			if ((robot.rightEncoder.getCurrentPosition()-rightStartPosition) >= newRightTarget) { 	// Check if we have passed our target
+			if ((robot.rightEncoder.getCurrentPosition()) >= newRightTarget) { 	// Check if we have passed our target
 				return false; 																		// Send stop command
 			}
 			else { 																					// If we haven't passed our target
@@ -131,7 +155,7 @@ public class encoders extends LinearOpMode{
 		}
 
 		if (direction == -1) { 																		// If we are moving backwards
-			if ((robot.rightEncoder.getCurrentPosition()-rightStartPosition) <= newRightTarget) { 	// Check if we have passed our target
+			if ((robot.rightEncoder.getCurrentPosition()) <= newRightTarget) { 	// Check if we have passed our target
 				return false; 																		// Send stop command
 			}
 			else { 																					// If we haven't passed our target
@@ -144,7 +168,7 @@ public class encoders extends LinearOpMode{
 	private boolean centerIsBusy(int direction) {
 
 		if (direction == 1) { 																		// If we are moving forward
-			if ((robot.centerEncoder.getCurrentPosition()-centerStartPositon) >= newCenterTarget) { // Check if we have passed our target
+			if ((robot.centerEncoder.getCurrentPosition()) >= newCenterTarget) { // Check if we have passed our target
 				return false; 																		// Send stop command
 			}
 			else { 																					// If we haven't passed our target
@@ -153,7 +177,7 @@ public class encoders extends LinearOpMode{
 		}
 
 		if (direction == -1) { 																		// If we are moving backwards
-			if ((robot.centerEncoder.getCurrentPosition()-centerStartPositon) <= newCenterTarget) { // Check if we have passed our target
+			if ((robot.centerEncoder.getCurrentPosition()) <= newCenterTarget) { // Check if we have passed our target
 				return false; 																		// Send stop command
 			}
 			else { 																					// If we haven't passed our target

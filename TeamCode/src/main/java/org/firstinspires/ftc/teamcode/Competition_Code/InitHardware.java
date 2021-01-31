@@ -42,9 +42,10 @@ public class InitHardware{
 		public DcMotor centerEncoder;
 
 		//Drive Train Encoder Definitions
-		public static final double     COUNTS_PER_MOTOR_REV    = 560 ;    // eg: REV 20:1 Motor Encoder
+		public static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: E8T-360-250-S-D-D-B Encoder
 		public static final double     WHEEL_DIAMETER_INCHES   = 1.0 ;     // For figuring circumference
 		public static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * 3.1415);
+		public static final double	   COUNTS_PER_DEGREE	   = 0;
 
 		// Mechanum variables definitions
 		public double frontRight;          // Sets the double "frontRight"             | Helps with motor calculations
