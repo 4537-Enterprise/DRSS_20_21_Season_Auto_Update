@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.Competition_Code;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+@Autonomous(name = "encoder test", group = "test")
 public class encoders extends LinearOpMode{
 
 	private InitHardware robot = new InitHardware();  //Load hardware from hardware map
@@ -10,9 +12,23 @@ public class encoders extends LinearOpMode{
 	int newRightTarget;
 	int newCenterTarget;
 
+	int step = 1;
+
+
+
 	@Override
 	public void runOpMode() throws InterruptedException{
 		robot.init(hardwareMap); //Initialize hardware
+
+		telemetry.addData("REady", "");
+		telemetry.update();
+
+		waitForStart();
+
+		if (step == 1) {
+			drive(.5,12,1);
+			step++;
+		}
 	}
 
 	public void drive (double speed, double Inches, int directionModifier) {
@@ -53,12 +69,19 @@ public class encoders extends LinearOpMode{
 
 	public void turn (double speed, double Angle, int directionModifier) {
 
+		double c = 40.84; //Circumference of arc created by robot wheels (Radius is 9.605")
+		double ANGLE_RATIO = Angle / 360; //Ratio of angle relative to entire circle
+		double CIRCUMFERENCE_OF_ANGLE = c * ANGLE_RATIO; //Circumference of Angle
+		int COUNTS_PER_DISTANCE = (int) ((CIRCUMFERENCE_OF_ANGLE * robot.COUNTS_PER_INCH));
+
 		// Ensure that the opmode is still active
 		if (opModeIsActive()){
 
 			// Math to calculate each target position for the motors
-			newLeftTarget = robot.leftEncoder.getCurrentPosition() + (int) (Angle * robot.COUNTS_PER_DEGREE);
-			newRightTarget = robot.rightEncoder.getCurrentPosition() - (int) (Angle * robot.COUNTS_PER_DEGREE);
+			//newLeftTarget = robot.leftEncoder.getCurrentPosition() + (int) (Angle * robot.COUNTS_PER_DEGREE);
+			//newRightTarget = robot.rightEncoder.getCurrentPosition() - (int) (Angle * robot.COUNTS_PER_DEGREE);
+			newLeftTarget = robot.leftEncoder.getCurrentPosition() + COUNTS_PER_DISTANCE;
+			newRightTarget = robot.rightEncoder.getCurrentPosition() - COUNTS_PER_DISTANCE;
 
 			// reset the timeout time and start motion.
 			robot.motorFrontLeft.setPower(speed*directionModifier);

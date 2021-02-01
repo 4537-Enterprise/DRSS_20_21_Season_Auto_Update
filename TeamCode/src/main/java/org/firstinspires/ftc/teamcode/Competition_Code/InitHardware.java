@@ -43,7 +43,7 @@ public class InitHardware{
 
 		//Drive Train Encoder Definitions
 		public static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: E8T-360-250-S-D-D-B Encoder
-		public static final double     WHEEL_DIAMETER_INCHES   = 1.0 ;     // For figuring circumference
+		public static final double     WHEEL_DIAMETER_INCHES   = 1.5 ;     // For figuring circumference
 		public static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * 3.1415);
 		public static final double	   COUNTS_PER_DEGREE	   = 0;
 
@@ -148,14 +148,24 @@ public class InitHardware{
 		motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 		//Odometer Initialization
-		leftEncoder = hwMap.get(DcMotor.class, "FL");
+		leftEncoder = hwMap.get(DcMotor.class, "BL");
 		rightEncoder = hwMap.get(DcMotor.class, "FR");
-		centerEncoder = hwMap.get(DcMotor.class, "BL");
+		centerEncoder = hwMap.get(DcMotor.class, "BR");
 
 		//Odometer Direction Initialization
-		leftEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
-		rightEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
-		centerEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
+		leftEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
+		rightEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
+		centerEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
+
+		//Reset Odometers
+		leftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		rightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		centerEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+		//Reset Odometers
+		leftEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		rightEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		centerEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 		//Lift and Intake Motor Initialization
 		launch = hwMap.get(DcMotorEx.class, "launch");            // Initializes launcher motor from configuration

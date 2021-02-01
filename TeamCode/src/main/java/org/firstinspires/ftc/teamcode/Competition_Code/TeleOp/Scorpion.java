@@ -367,7 +367,7 @@ public class Scorpion extends LinearOpMode{
 		//robot.deactivateTFOD();
 	}
 
-	private void autoAim(float distance) throws InterruptedException{
+	public void autoAim(float distance) throws InterruptedException{
 		if (distance == 0) {
 			return;
 		}

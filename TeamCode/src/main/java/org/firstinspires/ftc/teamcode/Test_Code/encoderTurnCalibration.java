@@ -9,8 +9,14 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import java.util.Locale;
 
 @Autonomous(name = "Turn Calibration", group = "Auto")
 public class encoderTurnCalibration extends LinearOpMode{
@@ -75,14 +81,19 @@ public class encoderTurnCalibration extends LinearOpMode{
 		motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 		//Odometer Initialization
-		leftEncoder = hardwareMap.get(DcMotor.class, "FL");
+		leftEncoder = hardwareMap.get(DcMotor.class, "BL");
 		rightEncoder = hardwareMap.get(DcMotor.class, "FR");
-		centerEncoder = hardwareMap.get(DcMotor.class, "BL");
+		centerEncoder = hardwareMap.get(DcMotor.class, "BR");
 
 		//Odometer Direction Initialization
-		leftEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
-		rightEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
-		centerEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
+		leftEncoder.setDirection(DcMotorSimple.Direction.FORWARD);
+		rightEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
+		centerEncoder.setDirection(DcMotorSimple.Direction.REVERSE);
+
+		//Reset Odometers
+		leftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		rightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		centerEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 		//Gyro Initialization
 
@@ -103,6 +114,11 @@ public class encoderTurnCalibration extends LinearOpMode{
 		imu = hardwareMap.get(BNO055IMU.class, "imu");
 
 		imu.initialize(parameters);
+
+		composeTelemetry();
+
+		telemetry.addData("Ready", "");
+		telemetry.update();
 
 		waitForStart();
 
@@ -359,5 +375,36 @@ public class encoderTurnCalibration extends LinearOpMode{
 		telemetry.addData("45 Degrees", encReading45);
 		telemetry.addData("90 Degrees", encReading90);
 		telemetry.update();
+	}
+
+	/**Gyro Telemetry**/
+
+	void composeTelemetry() {
+
+		// At the beginning of each telemetry update, grab a bunch of data
+		// from the IMU that we will then display in separate lines.
+		telemetry.addAction(new Runnable() { @Override public void run()
+		{
+			// Acquiring the angles is relatively expensive; we don't want
+			// to do that in each of the three items that need that info, as that's
+			// three times the necessary expense.
+			angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+			gravity  = imu.getGravity();
+		}
+		});
+		telemetry.addLine()
+				.addData("heading", new Func<String>() {
+					@Override public String value() {
+						return formatAngle(angles.angleUnit, angles.firstAngle);
+					}
+				});
+	}
+
+	String formatAngle(AngleUnit angleUnit, double angle) {
+		return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
+	}
+
+	String formatDegrees(double degrees){
+		return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
 	}
 }
