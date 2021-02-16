@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Competition_Code.TeleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -35,6 +37,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class Scorpion extends LinearOpMode{
 
 	private InitHardware robot = new InitHardware();  //Load hardware from hardware map
+	FtcDashboard dashboard = FtcDashboard.getInstance();
+	TelemetryPacket packet = new TelemetryPacket();
 
 	WebcamName webcamName = null;
 
@@ -153,6 +157,10 @@ public class Scorpion extends LinearOpMode{
 
 		robot.launch.setVelocity(0);				//Start up launcher
 		robot.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+		packet.put("Program is", "Ready");
+		dashboard.sendTelemetryPacket(packet);
+
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -250,7 +258,8 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.right_trigger > .25) { //Activate Pusher
-					autoAim(robot.distanceFromTarget);
+					//autoAim(robot.distanceFromTarget);
+					launch(3);
 				}
 				if (gamepad2.right_bumper) { //Activate Push+er
 					powerShot(74);
@@ -311,6 +320,12 @@ public class Scorpion extends LinearOpMode{
 					telemetry.addData("Pos (inch)", "Distance From Target = %.0f", robot.distanceFromTarget);
 					telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
 					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+
+					packet.put("Visible Target", robot.targetName);
+					packet.put("Distance from Target", robot.distanceFromTarget);
+					packet.put("Pos (inch) X", robot.x);
+					packet.put("pos (inch) Y", robot.y);
+					packet.put("Rot (deg)", robot.heading);
 				}
 				else if (robot.targetVisible) {
 					// express position (translation) of robot in inches.
@@ -326,11 +341,17 @@ public class Scorpion extends LinearOpMode{
 					telemetry.addData("Visible Target", robot.targetName);
 					telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
 					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+
+					packet.put("Visible Target", robot.targetName);
+					packet.put("Pos (inch) X", robot.x);
+					packet.put("pos (inch) Y", robot.y);
+					packet.put("Rot (deg)", robot.heading);
 				}
 				else {
 					robot.targetName = null;
 					robot.distanceFromTarget = 0;
 					telemetry.addData("Visible Target", "None");
+					packet.put("Visible Target", "None");
 				}
 
 			/**TFOD Code**/
@@ -358,6 +379,11 @@ public class Scorpion extends LinearOpMode{
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
 				telemetry.addData("Speed", robot.speed);
 				telemetry.update();
+
+				packet.put("", "");
+				packet.put("Launcher Angle", robot.launcherAngle);
+				packet.put("Speed", robot.speed);
+				dashboard.sendTelemetryPacket(packet);
 			/**End of telemetry**/
 		}
 
@@ -451,7 +477,7 @@ public class Scorpion extends LinearOpMode{
 				}
 			}
 			robot.flipper.setPower(0);
-			sleep(400);
+			//sleep(400);
 		}
 	}
 
