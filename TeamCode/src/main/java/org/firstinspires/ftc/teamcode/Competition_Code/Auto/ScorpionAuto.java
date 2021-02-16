@@ -297,6 +297,12 @@ public class ScorpionAuto extends LinearOpMode{
 
 			step++;
 		}
+
+		if (step == 13) {
+			armUp();
+
+			step++;
+		}
 	}
 
 	private void none() {
@@ -349,6 +355,12 @@ public class ScorpionAuto extends LinearOpMode{
 
 			strafe(1,12,1);
 			drive(1,8,1);
+
+			step++;
+		}
+
+		if (step == 10) {
+			armUp();
 
 			step++;
 		}

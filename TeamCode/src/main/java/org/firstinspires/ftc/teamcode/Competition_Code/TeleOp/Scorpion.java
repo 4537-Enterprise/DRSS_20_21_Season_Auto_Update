@@ -24,6 +24,7 @@ import org.firstinspires.ftc.teamcode.Competition_Code.encoders;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -179,8 +180,8 @@ public class Scorpion extends LinearOpMode{
 				double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				*/
-				double FrontRight = -gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double FrontLeft = gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontRight = gamepad1LeftX + gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontLeft = -gamepad1LeftX + gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackRight = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackLeft = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 
@@ -249,8 +250,10 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.right_trigger > .25) { //Activate Pusher
-					//robot.launch(3);
 					autoAim(robot.distanceFromTarget);
+				}
+				if (gamepad2.right_bumper) { //Activate Push+er
+					powerShot(74);
 				}
 			/**End of launcher controls**/
 
@@ -354,11 +357,6 @@ public class Scorpion extends LinearOpMode{
 				telemetry.addData("","");
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
 				telemetry.addData("Speed", robot.speed);
-				telemetry.addData("Expected Angle", robot.expectedAngle);
-				telemetry.addData("Actual Angle", robot.actualAngle);
-				telemetry.addData("Left Encoder", robot.leftEncoder.getCurrentPosition());
-				telemetry.addData("Right Encoder", robot.rightEncoder.getCurrentPosition());
-				telemetry.addData("Center Encoder", robot.centerEncoder.getCurrentPosition());
 				telemetry.update();
 			/**End of telemetry**/
 		}
@@ -372,17 +370,27 @@ public class Scorpion extends LinearOpMode{
 			return;
 		}
 		robot.stopMotors();
-		float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
-		robot.expectedAngle = angle;
+		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
 		robot.launch.setVelocity(2800);
 		sleep(700);
 		robot.setLauncherAngle(angle);
-		robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
-		robot.launch(3);
+		launch(3);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
 	}
 
+	public void powerShot(float distance) throws InterruptedException{
+		robot.stopMotors();
+		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
+		robot.launch.setVelocity(2800);
+		sleep(700);
+		robot.setLauncherAngle(angle);
+		launch(1);
+		robot.launch.setVelocity(0);
+		robot.zeroLauncherAngle();
+	}
+
+	/** Auto Aim Voids so I can kill the program **/
 	public void armDown() {
 		robot.stopMotors();
 		robot.armDown = true;
@@ -416,4 +424,35 @@ public class Scorpion extends LinearOpMode{
 		robot.arm.setPower(0);
 		robot.armDown = false;
 	}
+
+	/** Auto Aim Voids so I can kill the program **/
+	public void launch(int rings) throws InterruptedException{
+		for (int i = 1; i <= rings; i++) {
+			robot.flipper.setTargetPosition(65);
+			robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			robot.flipper.setPower(1);
+			while (robot.flipper.isBusy()) {
+				if (gamepad2.back) {
+					robot.flipper.setTargetPosition(-2);
+					while (robot.flipper.isBusy()) {
+					}
+					robot.flipper.setPower(0);
+					break;
+				}
+			}
+			robot.flipper.setTargetPosition(-2);
+			while (robot.flipper.isBusy()) {
+				if (gamepad2.back) {
+					robot.flipper.setTargetPosition(-2);
+					while (robot.flipper.isBusy()) {
+					}
+					robot.flipper.setPower(0);
+					break;
+				}
+			}
+			robot.flipper.setPower(0);
+			sleep(400);
+		}
+	}
+
 }
