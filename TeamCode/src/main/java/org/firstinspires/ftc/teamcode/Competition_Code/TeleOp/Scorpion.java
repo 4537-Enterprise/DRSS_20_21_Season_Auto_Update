@@ -253,8 +253,8 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.right_trigger > .25) { //Activate Pusher
-					//autoAim(robot.distanceFromTarget);
-					launch(3);
+					autoAim(robot.distanceFromTarget);
+					//launch(3);
 				}
 				if (gamepad2.right_bumper) { //Activate Push+er
 					powerShot(74);
