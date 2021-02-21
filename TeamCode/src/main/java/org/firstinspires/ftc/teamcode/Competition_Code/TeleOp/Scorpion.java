@@ -246,7 +246,7 @@ public class Scorpion extends LinearOpMode{
 				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
 				if (gamepad2.x) {				//Ramp up launcher
-					 robot.launch.setVelocity(2800);  //Set launcher motor to full speed
+					 robot.launch.setVelocity(2250);  //Set launcher motor to full speed
 				}
 				else {							//Slow down launcher when not shooting
 					robot.launch.setVelocity(0);	//Set launcher motor to half speed
@@ -372,11 +372,13 @@ public class Scorpion extends LinearOpMode{
 			/**Telemetry**/
 				telemetry.addData("","");
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
+				telemetry.addData("Launcher Speed", robot.launch.getVelocity());
 				telemetry.addData("Speed", robot.speed);
 				telemetry.update();
 
 				packet.put("", "");
 				packet.put("Launcher Angle", robot.launcherAngle);
+				packet.put("Launcher Speed", robot.launch.getVelocity());
 				packet.put("Speed", robot.speed);
 				dashboard.sendTelemetryPacket(packet);
 			/**End of telemetry**/
@@ -392,7 +394,7 @@ public class Scorpion extends LinearOpMode{
 		}
 		robot.stopMotors();
 		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
-		robot.launch.setVelocity(2800);
+		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);
 		launch(3);
@@ -403,7 +405,7 @@ public class Scorpion extends LinearOpMode{
 	public void powerShot(float distance) throws InterruptedException{
 		robot.stopMotors();
 		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
-		robot.launch.setVelocity(2800);
+		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);
 		launch(1);
