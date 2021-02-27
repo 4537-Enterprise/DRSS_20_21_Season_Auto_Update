@@ -178,11 +178,6 @@ public class Scorpion extends LinearOpMode{
 				float gamepad1RightX = -gamepad1.right_stick_x;     // Sets the gamepads right sticks x position to a float so that we can easily track the stick
 
 				// Mechanum formulas
-				/*double FrontRight = gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double FrontLeft = -gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				*/
 				double FrontRight = gamepad1LeftX + gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double FrontLeft = -gamepad1LeftX + gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackRight = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
@@ -393,7 +388,7 @@ public class Scorpion extends LinearOpMode{
 			return;
 		}
 		robot.stopMotors();
-		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
+		float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
 		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);
