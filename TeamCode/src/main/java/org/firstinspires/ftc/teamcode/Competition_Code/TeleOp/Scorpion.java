@@ -388,7 +388,8 @@ public class Scorpion extends LinearOpMode{
 			return;
 		}
 		robot.stopMotors();
-		float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
+		//float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
+		float angle = (float) ((-0.0123*distance)+16.6);
 		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);

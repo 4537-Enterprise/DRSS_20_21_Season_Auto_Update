@@ -118,12 +118,12 @@ public class ScorpionAuto extends LinearOpMode{
 		if (step == 1) {
 			drive(.5,1,1); // Move forward 1 inch
 			sleep(100);
-			turn(.25,4,1); // Turn right 5 degrees
+			turn(.25,-3,1); // Turn right 5 degrees
 			step++;
 		}
 
 		if (step == 2) {
-			autoAim(107,3); // Shoot three rings
+			autoAim(100,3); // Shoot three rings
 			turn(.25,-3,-1);
 			step++;
 		}
@@ -562,7 +562,8 @@ public class ScorpionAuto extends LinearOpMode{
 			return;
 		}
 		robot.stopMotors();
-		float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
+		//float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
+		float angle = (float) ((-0.0123*distance)+16.6);
 		robot.expectedAngle = angle;
 		robot.launch.setVelocity(2800);
 		sleep(750);
