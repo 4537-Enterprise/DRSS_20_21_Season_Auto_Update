@@ -563,7 +563,7 @@ public class ScorpionAuto extends LinearOpMode{
 		}
 		robot.stopMotors();
 		//float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
-		float angle = (float) ((-0.0123*distance)+16.6);
+		float angle = (float) ((-0.0123*distance)+16.25);  //16.6
 		robot.expectedAngle = angle;
 		robot.launch.setVelocity(2800);
 		sleep(750);

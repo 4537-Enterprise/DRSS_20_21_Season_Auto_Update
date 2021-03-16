@@ -58,7 +58,7 @@ public class InitHardware{
 	/* Payload definitions */
 		// Launcher and intake motor definitions
 		public DcMotorEx launch;      // Defines the launcher motor
-		public DcMotor flipper;     // Defines the flipper motor
+		public DcMotorEx flipper;     // Defines the flipper motor
 		public DcMotor intakeMotor; // Defines the intake Motor
 
 		// Angle adjustment servo definitions
@@ -78,6 +78,7 @@ public class InitHardware{
 		public double anglePositionLeft = .66;
 		public double anglePositionRight = .34;
 		public double countsPerDegree = 22.75;
+		public double launchOffset = 16;
 		public int launcherAngle = 0;
 
 	/* Vuforia Identification Definitions*/
@@ -172,8 +173,8 @@ public class InitHardware{
 		launch = hwMap.get(DcMotorEx.class, "launch");            // Initializes launcher motor from configuration
 		launch.setDirection(DcMotorEx.Direction.FORWARD);  // Sets the launcher motor direction to forward
 		launch.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-		flipper = hwMap.get(DcMotor.class, "flipper");			 // Initializes flipper motor from configuration
-		flipper.setDirection(DcMotor.Direction.REVERSE); // Sets the flipper motor direction to forward
+		flipper = hwMap.get(DcMotorEx.class, "flipper");			 // Initializes flipper motor from configuration
+		flipper.setDirection(DcMotorEx.Direction.FORWARD); // Sets the flipper motor direction to forward
 		intakeMotor = hwMap.get(DcMotor.class, "intakeMotor"); // Initializes intake motor from configuration
 		intakeMotor.setDirection(DcMotor.Direction.FORWARD); // Sets the intake motor direction to reverse
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -236,7 +237,7 @@ public class InitHardware{
 	}
 
 	public void launch(int rings) throws InterruptedException{
-		for (int i = 1; i <= rings; i++) {
+		/*for (int i = 1; i <= rings; i++) {
 			flipper.setTargetPosition(65);
 			flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			flipper.setPower(1);
@@ -249,6 +250,20 @@ public class InitHardware{
 			}
 			flipper.setPower(0);
 			sleep(400);
+		}*/
+
+		for (int i = 1; i <= rings; i++) {
+			flipper.setTargetPosition(flipper.getCurrentPosition() + 20);
+			flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			flipper.setPower(1);
+			while (flipper.isBusy()) {
+
+			}
+			flipper.setTargetPosition(flipper.getCurrentPosition() - 10);
+			while (flipper.isBusy()) {
+
+			}
+			flipper.setPower(0);
 		}
 	}
 

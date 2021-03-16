@@ -240,6 +240,14 @@ public class Scorpion extends LinearOpMode{
 				robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
+				if (gamepad2.dpad_left) {
+					robot.launchOffset = robot.launchOffset - 0.025;
+				}
+
+				if (gamepad2.dpad_right) {
+					robot.launchOffset = robot.launchOffset + 0.025;
+				}
+
 				if (gamepad2.x) {				//Ramp up launcher
 					 robot.launch.setVelocity(2250);  //Set launcher motor to full speed
 				}
@@ -389,7 +397,7 @@ public class Scorpion extends LinearOpMode{
 		}
 		robot.stopMotors();
 		//float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
-		float angle = (float) ((-0.0123*distance)+16.6);
+		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
 		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);
@@ -404,7 +412,7 @@ public class Scorpion extends LinearOpMode{
 		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);
-		launch(1);
+		launch(3);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
 	}
@@ -446,7 +454,7 @@ public class Scorpion extends LinearOpMode{
 
 	/** Auto Aim Voids so I can kill the program **/
 	public void launch(int rings) throws InterruptedException{
-		for (int i = 1; i <= rings; i++) {
+		/*for (int i = 1; i <= rings; i++) {
 			robot.flipper.setTargetPosition(65);
 			robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			robot.flipper.setPower(1);
@@ -471,7 +479,24 @@ public class Scorpion extends LinearOpMode{
 			}
 			robot.flipper.setPower(0);
 			//sleep(400);
+		}*/
+		//robot.flipper.setVelocity(-250);
+		//sleep(100);
+
+		for (int i = 1; i <= rings; i++) {
+			robot.flipper.setTargetPosition(robot.flipper.getCurrentPosition() + 20);
+			robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			robot.flipper.setVelocity(600);
+			while (robot.flipper.isBusy()) {
+				if (gamepad2.back) {
+					robot.flipper.setVelocity(0);
+					break;
+				}
+			}
+			robot.flipper.setVelocity(-600);
+			sleep(100);
 		}
+		robot.flipper.setVelocity(0);
 	}
 
 }
