@@ -221,6 +221,15 @@ public class Scorpion extends LinearOpMode{
 			/**End of intake controls**/
 
 			/**Launcher Controls**/
+
+				if (gamepad2.start) {
+					robot.AutoAimMode = true;
+				}
+
+				if (gamepad2.back) {
+					robot.AutoAimMode = false;
+				}
+
 				if (gamepad2.dpad_up && robot.anglePositionLeft >= 0 && robot.anglePositionRight <= 1) {	//Move the launcher up
 					robot.anglePositionLeft = robot.anglePositionLeft - 0.005;  								//Subtract from current angle on servo
 					robot.anglePositionRight = robot.anglePositionRight + 0.005;								//Add from current angle on servo
@@ -238,14 +247,22 @@ public class Scorpion extends LinearOpMode{
 
 				robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 				robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
-				robot.launcherAngle = (int) (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
+				robot.launcherAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
 
-				if (gamepad2.dpad_left) {
+				if (gamepad2.dpad_left && robot.AutoAimMode) {
 					robot.launchOffset = robot.launchOffset - 0.025;
 				}
 
-				if (gamepad2.dpad_right) {
+				if (gamepad2.dpad_right && robot.AutoAimMode) {
 					robot.launchOffset = robot.launchOffset + 0.025;
+				}
+
+				if (gamepad2.dpad_left && !robot.AutoAimMode) {
+					robot.launchOffset = robot.lockedOffset - 0.025;
+				}
+
+				if (gamepad2.dpad_right && !robot.AutoAimMode) {
+					robot.lockedOffset = robot.lockedOffset + 0.025;
 				}
 
 				if (gamepad2.x) {				//Ramp up launcher
@@ -255,11 +272,14 @@ public class Scorpion extends LinearOpMode{
 					robot.launch.setVelocity(0);	//Set launcher motor to half speed
 				}
 
-				if (gamepad2.right_trigger > .25) { //Activate Pusher
+				if (gamepad2.right_trigger > .25 && robot.AutoAimMode) { //Activate Pusher
 					autoAim(robot.distanceFromTarget);
 					//launch(3);
 				}
-				if (gamepad2.right_bumper) { //Activate Push+er
+				if (gamepad2.right_trigger > .25 && !robot.AutoAimMode) {
+					lockedAim();
+				}
+				if (gamepad2.left_bumper) { //Activate Push+er
 					powerShot(74);
 				}
 			/**End of launcher controls**/
@@ -396,7 +416,6 @@ public class Scorpion extends LinearOpMode{
 			return;
 		}
 		robot.stopMotors();
-		//float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
 		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
 		robot.launch.setVelocity(2250);
 		sleep(700);
@@ -404,6 +423,20 @@ public class Scorpion extends LinearOpMode{
 		launch(3);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
+	}
+
+	public void lockedAim() throws InterruptedException{
+		robot.stopMotors();
+		robot.launch.setVelocity(2250);
+		sleep(700);
+
+		robot.anglePositionLeft = .247 - robot.lockedOffset;
+		robot.anglePositionRight = .753 + robot.lockedOffset;
+		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
+		robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
+
+		launch(3);
+		robot.launch.setVelocity(0);
 	}
 
 	public void powerShot(float distance) throws InterruptedException{
@@ -454,35 +487,6 @@ public class Scorpion extends LinearOpMode{
 
 	/** Auto Aim Voids so I can kill the program **/
 	public void launch(int rings) throws InterruptedException{
-		/*for (int i = 1; i <= rings; i++) {
-			robot.flipper.setTargetPosition(65);
-			robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-			robot.flipper.setPower(1);
-			while (robot.flipper.isBusy()) {
-				if (gamepad2.back) {
-					robot.flipper.setTargetPosition(-2);
-					while (robot.flipper.isBusy()) {
-					}
-					robot.flipper.setPower(0);
-					break;
-				}
-			}
-			robot.flipper.setTargetPosition(-2);
-			while (robot.flipper.isBusy()) {
-				if (gamepad2.back) {
-					robot.flipper.setTargetPosition(-2);
-					while (robot.flipper.isBusy()) {
-					}
-					robot.flipper.setPower(0);
-					break;
-				}
-			}
-			robot.flipper.setPower(0);
-			//sleep(400);
-		}*/
-		//robot.flipper.setVelocity(-250);
-		//sleep(100);
-
 		for (int i = 1; i <= rings; i++) {
 			robot.flipper.setTargetPosition(robot.flipper.getCurrentPosition() + 20);
 			robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -498,5 +502,4 @@ public class Scorpion extends LinearOpMode{
 		}
 		robot.flipper.setVelocity(0);
 	}
-
 }

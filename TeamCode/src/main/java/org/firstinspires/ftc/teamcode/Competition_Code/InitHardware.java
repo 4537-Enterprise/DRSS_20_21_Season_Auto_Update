@@ -78,8 +78,10 @@ public class InitHardware{
 		public double anglePositionLeft = .66;
 		public double anglePositionRight = .34;
 		public double countsPerDegree = 22.75;
-		public double launchOffset = 16;
-		public int launcherAngle = 0;
+		public boolean AutoAimMode = false;
+		public double launchOffset = 16.0;
+		public double lockedOffset = 0.0;
+		public double launcherAngle = 0.0;
 
 	/* Vuforia Identification Definitions*/
 		public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
