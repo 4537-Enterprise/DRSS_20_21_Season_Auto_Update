@@ -258,11 +258,11 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.dpad_left && !robot.AutoAimMode) {
-					robot.launchOffset = robot.lockedOffset - 0.025;
+					robot.lockedOffset = robot.lockedOffset - 0.002;
 				}
 
 				if (gamepad2.dpad_right && !robot.AutoAimMode) {
-					robot.lockedOffset = robot.lockedOffset + 0.025;
+					robot.lockedOffset = robot.lockedOffset + 0.002;
 				}
 
 				if (gamepad2.x) {				//Ramp up launcher
@@ -396,6 +396,8 @@ public class Scorpion extends LinearOpMode{
 				telemetry.addData("","");
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
 				telemetry.addData("Launcher Speed", robot.launch.getVelocity());
+				telemetry.addData("Left Pos", robot.LeftServoPosition);
+				telemetry.addData("Right Pos", robot.RightServoPosition);
 				telemetry.addData("Speed", robot.speed);
 				telemetry.update();
 
@@ -420,6 +422,8 @@ public class Scorpion extends LinearOpMode{
 		robot.launch.setVelocity(2250);
 		sleep(700);
 		robot.setLauncherAngle(angle);
+		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
+		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
 		launch(3);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();

@@ -118,13 +118,13 @@ public class ScorpionAuto extends LinearOpMode{
 		if (step == 1) {
 			drive(.5,1,1); // Move forward 1 inch
 			sleep(100);
-			turn(.25,-3,1); // Turn right 5 degrees
+			turn(.25,1,1); // Turn right 5 degrees
 			step++;
 		}
 
 		if (step == 2) {
-			autoAim(100,3); // Shoot three rings
-			turn(.25,-3,-1);
+			autoAim(60,3); // Shoot three rings
+			turn(.25,1,-1);
 			step++;
 		}
 
@@ -176,8 +176,8 @@ public class ScorpionAuto extends LinearOpMode{
 			robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 			robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 
-			drive(.25,15,1);
-			drive(.15,5,1);
+			drive(.25,20,1);
+			//drive(.15,5,1);
 			sleep(2250);
 
 			step++;
@@ -187,7 +187,7 @@ public class ScorpionAuto extends LinearOpMode{
 			turn(1,4,1);
 
 			robot.zeroLauncherAngle();
-			autoAim(78,2);
+			autoAim(200,2);
 
 			step++;
 		}
@@ -201,7 +201,7 @@ public class ScorpionAuto extends LinearOpMode{
 
 		if (step == 8) {
 			drive(1,30,1);
-			turn(1,-30,-1);
+			turn(1,-35,-1);
 
 			step++;
 		}
@@ -267,7 +267,7 @@ public class ScorpionAuto extends LinearOpMode{
 
 		if (step == 9) {
 			drive(.5,32,1);
-			drive(.15,4,1);
+			drive(.15,2,1);
 
 			robot.intakeMotor.setPower(0);
 			robot.gripper.setPosition(0);
@@ -565,7 +565,7 @@ public class ScorpionAuto extends LinearOpMode{
 		//float angle = (float) ((0.001*Math.pow((distance-60),2))+16.5);
 		float angle = (float) ((-0.0123*distance)+16.25);  //16.6
 		robot.expectedAngle = angle;
-		robot.launch.setVelocity(2800);
+		robot.launch.setVelocity(2000);
 		sleep(750);
 		robot.setLauncherAngle(angle);
 		robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);

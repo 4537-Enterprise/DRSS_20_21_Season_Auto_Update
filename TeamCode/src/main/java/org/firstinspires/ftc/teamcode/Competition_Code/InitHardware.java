@@ -82,6 +82,8 @@ public class InitHardware{
 		public double launchOffset = 16.0;
 		public double lockedOffset = 0.0;
 		public double launcherAngle = 0.0;
+		public double LeftServoPosition = 0.0;
+		public double RightServoPosition = 0.0;
 
 	/* Vuforia Identification Definitions*/
 		public static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
@@ -239,34 +241,17 @@ public class InitHardware{
 	}
 
 	public void launch(int rings) throws InterruptedException{
-		/*for (int i = 1; i <= rings; i++) {
-			flipper.setTargetPosition(65);
-			flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-			flipper.setPower(1);
-			while (flipper.isBusy()) {
-
-			}
-			flipper.setTargetPosition(-2);
-			while (flipper.isBusy()) {
-
-			}
-			flipper.setPower(0);
-			sleep(400);
-		}*/
-
 		for (int i = 1; i <= rings; i++) {
 			flipper.setTargetPosition(flipper.getCurrentPosition() + 20);
 			flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-			flipper.setPower(1);
+			flipper.setVelocity(600);
 			while (flipper.isBusy()) {
 
 			}
-			flipper.setTargetPosition(flipper.getCurrentPosition() - 10);
-			while (flipper.isBusy()) {
-
-			}
-			flipper.setPower(0);
+			flipper.setVelocity(-600);
+			sleep(100);
 		}
+		flipper.setVelocity(0);
 	}
 
 	public void stopMotors() {
