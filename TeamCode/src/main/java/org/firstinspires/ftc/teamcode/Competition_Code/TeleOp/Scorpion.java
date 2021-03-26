@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Competition_Code.TeleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -17,11 +19,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.teamcode.Competition_Code.Auto.ScorpionAuto;
 import org.firstinspires.ftc.teamcode.Competition_Code.InitHardware;
+import org.firstinspires.ftc.teamcode.Competition_Code.encoders;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -32,6 +37,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 public class Scorpion extends LinearOpMode{
 
 	private InitHardware robot = new InitHardware();  //Load hardware from hardware map
+	FtcDashboard dashboard = FtcDashboard.getInstance();
+	TelemetryPacket packet = new TelemetryPacket();
 
 	WebcamName webcamName = null;
 
@@ -150,6 +157,10 @@ public class Scorpion extends LinearOpMode{
 
 		robot.launch.setVelocity(0);				//Start up launcher
 		robot.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+		packet.put("Program is", "Ready");
+		dashboard.sendTelemetryPacket(packet);
+
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -177,8 +188,8 @@ public class Scorpion extends LinearOpMode{
 				double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				*/
-				double FrontRight = -gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double FrontLeft = gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontRight = gamepad1LeftX + gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+				double FrontLeft = -gamepad1LeftX + gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackRight = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 				double BackLeft = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 
@@ -247,8 +258,11 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.right_trigger > .25) { //Activate Pusher
-					//robot.launch(3);
-					autoAim(robot.distanceFromTarget);
+					//autoAim(robot.distanceFromTarget);
+					launch(3);
+				}
+				if (gamepad2.right_bumper) { //Activate Push+er
+					powerShot(74);
 				}
 			/**End of launcher controls**/
 
@@ -306,6 +320,12 @@ public class Scorpion extends LinearOpMode{
 					telemetry.addData("Pos (inch)", "Distance From Target = %.0f", robot.distanceFromTarget);
 					telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
 					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+
+					packet.put("Visible Target", robot.targetName);
+					packet.put("Distance from Target", robot.distanceFromTarget);
+					packet.put("Pos (inch) X", robot.x);
+					packet.put("pos (inch) Y", robot.y);
+					packet.put("Rot (deg)", robot.heading);
 				}
 				else if (robot.targetVisible) {
 					// express position (translation) of robot in inches.
@@ -321,11 +341,17 @@ public class Scorpion extends LinearOpMode{
 					telemetry.addData("Visible Target", robot.targetName);
 					telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
 					telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+
+					packet.put("Visible Target", robot.targetName);
+					packet.put("Pos (inch) X", robot.x);
+					packet.put("pos (inch) Y", robot.y);
+					packet.put("Rot (deg)", robot.heading);
 				}
 				else {
 					robot.targetName = null;
 					robot.distanceFromTarget = 0;
 					telemetry.addData("Visible Target", "None");
+					packet.put("Visible Target", "None");
 				}
 
 			/**TFOD Code**/
@@ -352,11 +378,12 @@ public class Scorpion extends LinearOpMode{
 				telemetry.addData("","");
 				telemetry.addData("Launcher Angle", robot.launcherAngle);
 				telemetry.addData("Speed", robot.speed);
-				telemetry.addData("Expected Angle", robot.expectedAngle);
-				telemetry.addData("Actual Angle", robot.actualAngle);
-				telemetry.addData("Left Angle", robot.angleAdjustLeft.getPosition());
-				telemetry.addData("Right Angle", robot.angleAdjustRight.getPosition());
 				telemetry.update();
+
+				packet.put("", "");
+				packet.put("Launcher Angle", robot.launcherAngle);
+				packet.put("Speed", robot.speed);
+				dashboard.sendTelemetryPacket(packet);
 			/**End of telemetry**/
 		}
 
@@ -364,22 +391,32 @@ public class Scorpion extends LinearOpMode{
 		//robot.deactivateTFOD();
 	}
 
-	private void autoAim(float distance) throws InterruptedException{
+	public void autoAim(float distance) throws InterruptedException{
 		if (distance == 0) {
 			return;
 		}
 		robot.stopMotors();
-		float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
-		robot.expectedAngle = angle;
+		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
 		robot.launch.setVelocity(2800);
 		sleep(700);
 		robot.setLauncherAngle(angle);
-		robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
-		robot.launch(3);
+		launch(3);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
 	}
 
+	public void powerShot(float distance) throws InterruptedException{
+		robot.stopMotors();
+		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
+		robot.launch.setVelocity(2800);
+		sleep(700);
+		robot.setLauncherAngle(angle);
+		launch(1);
+		robot.launch.setVelocity(0);
+		robot.zeroLauncherAngle();
+	}
+
+	/** Auto Aim Voids so I can kill the program **/
 	public void armDown() {
 		robot.stopMotors();
 		robot.armDown = true;
@@ -413,4 +450,35 @@ public class Scorpion extends LinearOpMode{
 		robot.arm.setPower(0);
 		robot.armDown = false;
 	}
+
+	/** Auto Aim Voids so I can kill the program **/
+	public void launch(int rings) throws InterruptedException{
+		for (int i = 1; i <= rings; i++) {
+			robot.flipper.setTargetPosition(65);
+			robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			robot.flipper.setPower(1);
+			while (robot.flipper.isBusy()) {
+				if (gamepad2.back) {
+					robot.flipper.setTargetPosition(-2);
+					while (robot.flipper.isBusy()) {
+					}
+					robot.flipper.setPower(0);
+					break;
+				}
+			}
+			robot.flipper.setTargetPosition(-2);
+			while (robot.flipper.isBusy()) {
+				if (gamepad2.back) {
+					robot.flipper.setTargetPosition(-2);
+					while (robot.flipper.isBusy()) {
+					}
+					robot.flipper.setPower(0);
+					break;
+				}
+			}
+			robot.flipper.setPower(0);
+			//sleep(400);
+		}
+	}
+
 }
