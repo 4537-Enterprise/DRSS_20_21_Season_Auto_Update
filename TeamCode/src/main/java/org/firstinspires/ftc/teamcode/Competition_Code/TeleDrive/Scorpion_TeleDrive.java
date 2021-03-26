@@ -329,6 +329,8 @@ public class Scorpion_TeleDrive extends LinearOpMode {
 
 
         private InitHardware robot = new InitHardware();  //Load hardware from hardware map
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        TelemetryPacket packet = new TelemetryPacket();
 
         WebcamName webcamName = null;
 
@@ -463,6 +465,10 @@ public class Scorpion_TeleDrive extends LinearOpMode {
 
             robot.launch.setVelocity(0);				//Start up launcher
             robot.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            packet.put("Program is", "Ready");
+            dashboard.sendTelemetryPacket(packet);
+
             telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
             telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
             telemetry.addData("Vuforia", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -489,13 +495,13 @@ public class Scorpion_TeleDrive extends LinearOpMode {
                 float gamepad1RightX = -gamepad1.right_stick_x;     // Sets the gamepads right sticks x position to a float so that we can easily track the stick
 
                 // Mechanum formulas
-				/*double FrontRight = gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double FrontLeft = -gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-				*/
-                double FrontRight = -gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
-                double FrontLeft = gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+            /*double FrontRight = gamepad1LeftX - gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+            double FrontLeft = -gamepad1LeftX - gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+            double BackRight = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+            double BackLeft = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+            */
+                double FrontRight = gamepad1LeftX + gamepad1LeftY - gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
+                double FrontLeft = -gamepad1LeftX + gamepad1LeftY + gamepad1RightX;     // Combines the inputs of the sticks to clip their output to a value between 1 and -1
                 double BackRight = -gamepad1LeftX + gamepad1LeftY - gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
                 double BackLeft = gamepad1LeftX + gamepad1LeftY + gamepad1RightX;      // Combines the inputs of the sticks to clip their output to a value between 1 and -1
 
@@ -564,8 +570,11 @@ public class Scorpion_TeleDrive extends LinearOpMode {
                 }
 
                 if (gamepad2.right_trigger > .25) { //Activate Pusher
-                    //robot.launch(3);
-                    autoAim(robot.distanceFromTarget);
+                    //autoAim(robot.distanceFromTarget);
+                    launch(3);
+                }
+                if (gamepad2.right_bumper) { //Activate Push+er
+                    powerShot(74);
                 }
                 /**End of launcher controls**/
 
@@ -623,6 +632,12 @@ public class Scorpion_TeleDrive extends LinearOpMode {
                     telemetry.addData("Pos (inch)", "Distance From Target = %.0f", robot.distanceFromTarget);
                     telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
                     telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+
+                    packet.put("Visible Target", robot.targetName);
+                    packet.put("Distance from Target", robot.distanceFromTarget);
+                    packet.put("Pos (inch) X", robot.x);
+                    packet.put("pos (inch) Y", robot.y);
+                    packet.put("Rot (deg)", robot.heading);
                 }
                 else if (robot.targetVisible) {
                     // express position (translation) of robot in inches.
@@ -638,99 +653,106 @@ public class Scorpion_TeleDrive extends LinearOpMode {
                     telemetry.addData("Visible Target", robot.targetName);
                     telemetry.addData("Pos (inch)", "X, Y = %.0f, %.0f", robot.x, robot.y);
                     telemetry.addData("Rot (deg)", "Heading = %.0f", robot.heading);
+
+                    packet.put("Visible Target", robot.targetName);
+                    packet.put("Pos (inch) X", robot.x);
+                    packet.put("pos (inch) Y", robot.y);
+                    packet.put("Rot (deg)", robot.heading);
                 }
                 else {
                     robot.targetName = null;
                     robot.distanceFromTarget = 0;
                     telemetry.addData("Visible Target", "None");
+                    packet.put("Visible Target", "None");
                 }
 
                 /**TFOD Code**/
 
-			/*if (robot.tfod != null) {
-				// getUpdatedRecognitions() will return null if no new information is available since
-				// the last time that call was made.
-				List<Recognition> updatedRecognitions = robot.tfod.getUpdatedRecognitions();
-				if (updatedRecognitions != null) {
-					telemetry.addData("# Object Detected", updatedRecognitions.size());
-					// step through the list of recognitions and display boundary info.
-					int i = 0;
-					for (Recognition recognition : updatedRecognitions) {
-						telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
-						telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
-								recognition.getLeft(), recognition.getTop());
-						telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
-								recognition.getRight(), recognition.getBottom());
-					}
-				}
-			}*/
+        /*if (robot.tfod != null) {
+            // getUpdatedRecognitions() will return null if no new information is available since
+            // the last time that call was made.
+            List<Recognition> updatedRecognitions = robot.tfod.getUpdatedRecognitions();
+            if (updatedRecognitions != null) {
+                telemetry.addData("# Object Detected", updatedRecognitions.size());
+                // step through the list of recognitions and display boundary info.
+                int i = 0;
+                for (Recognition recognition : updatedRecognitions) {
+                    telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                    telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                            recognition.getLeft(), recognition.getTop());
+                    telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                            recognition.getRight(), recognition.getBottom());
+                }
+            }
+        }*/
 
                 /**Telemetry**/
                 telemetry.addData("","");
                 telemetry.addData("Launcher Angle", robot.launcherAngle);
                 telemetry.addData("Speed", robot.speed);
-                telemetry.addData("Expected Angle", robot.expectedAngle);
-                telemetry.addData("Actual Angle", robot.actualAngle);
-                telemetry.addData("Left Angle", robot.angleAdjustLeft.getPosition());
-                telemetry.addData("Right Angle", robot.angleAdjustRight.getPosition());
                 telemetry.update();
+
+                packet.put("", "");
+                packet.put("Launcher Angle", robot.launcherAngle);
+                packet.put("Speed", robot.speed);
+                dashboard.sendTelemetryPacket(packet);
                 /**End of telemetry**/
             }
 
             targetsUltimateGoal.deactivate();
             //robot.deactivateTFOD();
 
-            canRunGamepadThread = false;
-            socket.close();
-        }
+        canRunGamepadThread = false;
+        socket.close();
+    }
 
-        private void autoAim(float distance) throws InterruptedException{
-            if (distance == 0) {
+    private void autoAim(float distance) throws InterruptedException{
+        if (distance == 0) {
+            return;
+        }
+        robot.stopMotors();
+        float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
+        robot.expectedAngle = angle;
+        robot.launch.setVelocity(2800);
+        sleep(700);
+        robot.setLauncherAngle(angle);
+        robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
+        robot.launch(3);
+        robot.launch.setVelocity(0);
+        robot.zeroLauncherAngle();
+    }
+
+    public void armDown() {
+        robot.stopMotors();
+        robot.armDown = true;
+        robot.arm.setTargetPosition(115);
+        robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.arm.setPower(1);
+        while (robot.arm.isBusy()) {
+            if (gamepad2.back) {
+                robot.gripper.setPosition(.65);
+                sleep(250);
+                robot.gripper.setPosition(1);
+                robot.gripperOpen = true;
                 return;
             }
-            robot.stopMotors();
-            float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
-            robot.expectedAngle = angle;
-            robot.launch.setVelocity(2800);
-            sleep(700);
-            robot.setLauncherAngle(angle);
-            robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
-            robot.launch(3);
-            robot.launch.setVelocity(0);
-            robot.zeroLauncherAngle();
         }
-
-        public void armDown() {
-            robot.stopMotors();
-            robot.armDown = true;
-            robot.arm.setTargetPosition(115);
-            robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.arm.setPower(1);
-            while (robot.arm.isBusy()) {
-                if (gamepad2.back) {
-                    robot.gripper.setPosition(.65);
-                    sleep(250);
-                    robot.gripper.setPosition(1);
-                    robot.gripperOpen = true;
-                    return;
-                }
-            }
-            robot.arm.setPower(0);
-            robot.gripper.setPosition(1);
-            robot.gripperOpen = true;
-        }
-
-        public void armUp() {
-            robot.stopMotors();
-            robot.arm.setTargetPosition(15);
-            robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.arm.setPower(1);
-            while (robot.arm.isBusy()) {
-                if (gamepad2.back) {
-                    return;
-                }
-            }
-            robot.arm.setPower(0);
-            robot.armDown = false;
-        }
+        robot.arm.setPower(0);
+        robot.gripper.setPosition(1);
+        robot.gripperOpen = true;
     }
+
+    public void armUp() {
+        robot.stopMotors();
+        robot.arm.setTargetPosition(15);
+        robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.arm.setPower(1);
+        while (robot.arm.isBusy()) {
+            if (gamepad2.back) {
+                return;
+            }
+        }
+        robot.arm.setPower(0);
+        robot.armDown = false;
+    }
+}
