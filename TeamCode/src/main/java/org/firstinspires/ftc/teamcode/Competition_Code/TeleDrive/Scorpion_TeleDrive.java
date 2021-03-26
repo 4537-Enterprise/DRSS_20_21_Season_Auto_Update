@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.Competition_Code.TeleDrive;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -14,7 +13,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.teamcode.Competition_Code.InitHardware;
 
@@ -335,7 +333,7 @@ public class Scorpion_TeleDrive extends LinearOpMode {
         WebcamName webcamName = null;
 
         @Override
-        public void runOpMode() throws InterruptedException{
+        public void runOpMode(){
 
 
             String address = "192.168.43.1"; //Check "Program and Manage" tab on the Driver Station and verify the IP address
@@ -706,22 +704,33 @@ public class Scorpion_TeleDrive extends LinearOpMode {
         socket.close();
     }
 
-    private void autoAim(float distance) throws InterruptedException{
+
+    public void autoAim(float distance) throws InterruptedException{
         if (distance == 0) {
             return;
         }
         robot.stopMotors();
-        float angle = (float) ((0.001*Math.pow((distance-60),2))+15.25);
-        robot.expectedAngle = angle;
+        float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
         robot.launch.setVelocity(2800);
         sleep(700);
         robot.setLauncherAngle(angle);
-        robot.actualAngle = (robot.boreEncoder.getCurrentPosition()/robot.countsPerDegree);
-        robot.launch(3);
+        launch(3);
         robot.launch.setVelocity(0);
         robot.zeroLauncherAngle();
     }
 
+    public void powerShot(float distance) throws InterruptedException{
+        robot.stopMotors();
+        float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
+        robot.launch.setVelocity(2800);
+        sleep(700);
+        robot.setLauncherAngle(angle);
+        launch(1);
+        robot.launch.setVelocity(0);
+        robot.zeroLauncherAngle();
+    }
+
+    /** Auto Aim Voids so I can kill the program **/
     public void armDown() {
         robot.stopMotors();
         robot.armDown = true;
@@ -754,5 +763,35 @@ public class Scorpion_TeleDrive extends LinearOpMode {
         }
         robot.arm.setPower(0);
         robot.armDown = false;
+    }
+
+    /** Auto Aim Voids so I can kill the program **/
+    public void launch(int rings) throws InterruptedException{
+        for (int i = 1; i <= rings; i++) {
+            robot.flipper.setTargetPosition(65);
+            robot.flipper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.flipper.setPower(1);
+            while (robot.flipper.isBusy()) {
+                if (gamepad2.back) {
+                    robot.flipper.setTargetPosition(-2);
+                    while (robot.flipper.isBusy()) {
+                    }
+                    robot.flipper.setPower(0);
+                    break;
+                }
+            }
+            robot.flipper.setTargetPosition(-2);
+            while (robot.flipper.isBusy()) {
+                if (gamepad2.back) {
+                    robot.flipper.setTargetPosition(-2);
+                    while (robot.flipper.isBusy()) {
+                    }
+                    robot.flipper.setPower(0);
+                    break;
+                }
+            }
+            robot.flipper.setPower(0);
+            //sleep(400);
+        }
     }
 }
