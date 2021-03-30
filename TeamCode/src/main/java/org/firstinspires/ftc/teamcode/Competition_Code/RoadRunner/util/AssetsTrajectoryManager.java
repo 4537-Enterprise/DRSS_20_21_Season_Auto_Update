@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.Competition_Code.RoadRunner.util;
 
 import androidx.annotation.Nullable;
 
@@ -16,6 +16,7 @@ import java.io.InputStream;
 /**
  * Set of utilities for loading trajectories from assets (the plugin save location).
  */
+
 public class AssetsTrajectoryManager {
 
     /**

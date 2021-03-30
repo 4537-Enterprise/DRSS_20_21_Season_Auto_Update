@@ -35,7 +35,7 @@ public class Scorpion_TeleDrive extends LinearOpMode {
     private DatagramSocket socket;
     private boolean canRunGamepadThread;
     private Thread gamepadHandler;
-
+    
     WebcamName webcamName = null;
 
     private void startGamepadHandlerThread() {
