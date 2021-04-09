@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Competition_Code;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -122,6 +123,10 @@ public class InitHardware{
 		public double expectedAngle = 0;
 		public double actualAngle = 0;
 
+		public DigitalChannel led1;
+		public DigitalChannel led2;
+		public DigitalChannel led3;
+
 	//Local OpMode Members
 	HardwareMap hwMap =  null;
 
@@ -196,6 +201,16 @@ public class InitHardware{
 		arm.setDirection(DcMotor.Direction.REVERSE);
 		arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		gripper = hwMap.servo.get("gripper");
+
+		//LED Initialization
+		led1 = hwMap.get(DigitalChannel.class, "led1");
+		led2 = hwMap.get(DigitalChannel.class, "led2");
+		led3 = hwMap.get(DigitalChannel.class, "led3");
+
+		// change LED mode from input to output
+		led1.setMode(DigitalChannel.Mode.OUTPUT);
+		led2.setMode(DigitalChannel.Mode.OUTPUT);
+		led3.setMode(DigitalChannel.Mode.OUTPUT);
 	}
 
 	public void activateTFOD() {

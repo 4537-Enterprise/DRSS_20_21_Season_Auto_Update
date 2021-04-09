@@ -266,10 +266,33 @@ public class Scorpion extends LinearOpMode{
 				}
 
 				if (gamepad2.x) {				//Ramp up launcher
-					 robot.launch.setVelocity(2250);  //Set launcher motor to full speed
+					 robot.launch.setVelocity(3000);  //Set launcher motor to full speed
 				}
 				else {							//Slow down launcher when not shooting
 					robot.launch.setVelocity(0);	//Set launcher motor to half speed
+				}
+
+				/* Launcher Indicator LED Code */
+
+				if (robot.launch.getVelocity() >= 2000) {
+					robot.led3.setState(false);
+					robot.led2.setState(false);
+					robot.led1.setState(false);
+				}
+				else if (robot.launch.getVelocity() >= 1500) {
+					robot.led3.setState(true);
+					robot.led2.setState(false);
+					robot.led1.setState(false);
+				}
+				else if (robot.launch.getVelocity() >= 1000) {
+					robot.led3.setState(true);
+					robot.led2.setState(true);
+					robot.led1.setState(false);
+				}
+				else {
+					robot.led1.setState(true);
+					robot.led2.setState(true);
+					robot.led3.setState(true);
 				}
 
 				if (gamepad2.right_trigger > .25 && robot.AutoAimMode) { //Activate Pusher
@@ -419,19 +442,19 @@ public class Scorpion extends LinearOpMode{
 		}
 		robot.stopMotors();
 		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
-		robot.launch.setVelocity(2250);
+		robot.launch.setVelocity(3000);
 		sleep(700);
 		robot.setLauncherAngle(angle);
 		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
 		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
-		launch(3);
+		launch(4);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
 	}
 
 	public void lockedAim() throws InterruptedException{
 		robot.stopMotors();
-		robot.launch.setVelocity(2250);
+		robot.launch.setVelocity(3000);
 		sleep(700);
 
 		robot.anglePositionLeft = .247 - robot.lockedOffset;
@@ -439,17 +462,17 @@ public class Scorpion extends LinearOpMode{
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 
-		launch(3);
+		launch(4);
 		robot.launch.setVelocity(0);
 	}
 
 	public void powerShot(float distance) throws InterruptedException{
 		robot.stopMotors();
 		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
-		robot.launch.setVelocity(2250);
+		robot.launch.setVelocity(3000);
 		sleep(700);
 		robot.setLauncherAngle(angle);
-		launch(3);
+		launch(4);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
 	}
