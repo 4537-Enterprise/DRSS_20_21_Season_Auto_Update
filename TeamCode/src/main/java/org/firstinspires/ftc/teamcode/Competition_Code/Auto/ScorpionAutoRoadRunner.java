@@ -55,7 +55,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 				.build();
 
 		Trajectory traj5 = drive.trajectoryBuilder(traj4.end(), true)
-				.splineTo(new Vector2d(-24, 32), Math.toRadians(180.0))
+				.splineTo(new Vector2d(-24, 32), Math.toRadians(0.0))
 				.build();
 
 		Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
@@ -99,14 +99,14 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 		if (step == 6) { //Backup from rings and turn 180 degrees
 			drive.followTrajectory(traj5);
-			//drive.turn(180);
+			drive.turn(Math.toRadians(180));
 			sleep(1000);
 
 			step++;
 		}
 
 		if (step == 7) { //Turn back to face with wobble goal
-			//drive.turn(160);
+			drive.turn(Math.toRadians(160));
 
 			step++;
 		}
