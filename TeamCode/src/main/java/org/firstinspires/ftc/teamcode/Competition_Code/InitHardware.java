@@ -123,9 +123,12 @@ public class InitHardware{
 		public double expectedAngle = 0;
 		public double actualAngle = 0;
 
-		public DigitalChannel led1;
-		public DigitalChannel led2;
-		public DigitalChannel led3;
+		public DigitalChannel led1red;
+		public DigitalChannel led1green;
+		public DigitalChannel led2red;
+		public DigitalChannel led2green;
+		public DigitalChannel led3red;
+		public DigitalChannel led3green;
 
 	//Local OpMode Members
 	HardwareMap hwMap =  null;
@@ -203,14 +206,20 @@ public class InitHardware{
 		gripper = hwMap.servo.get("gripper");
 
 		//LED Initialization
-		led1 = hwMap.get(DigitalChannel.class, "led1");
-		led2 = hwMap.get(DigitalChannel.class, "led2");
-		led3 = hwMap.get(DigitalChannel.class, "led3");
+		led1red = hwMap.get(DigitalChannel.class, "led1red");
+		led1green = hwMap.get(DigitalChannel.class, "led1green");
+		led2red = hwMap.get(DigitalChannel.class, "led2red");
+		led2green = hwMap.get(DigitalChannel.class, "led2green");
+		led3red = hwMap.get(DigitalChannel.class, "led3red");
+		led3green = hwMap.get(DigitalChannel.class, "led3green");
 
 		// change LED mode from input to output
-		led1.setMode(DigitalChannel.Mode.OUTPUT);
-		led2.setMode(DigitalChannel.Mode.OUTPUT);
-		led3.setMode(DigitalChannel.Mode.OUTPUT);
+		led1red.setMode(DigitalChannel.Mode.OUTPUT);
+		led1green.setMode(DigitalChannel.Mode.OUTPUT);
+		led2red.setMode(DigitalChannel.Mode.OUTPUT);
+		led2green.setMode(DigitalChannel.Mode.OUTPUT);
+		led3red.setMode(DigitalChannel.Mode.OUTPUT);
+		led3green.setMode(DigitalChannel.Mode.OUTPUT);
 	}
 
 	public void activateTFOD() {

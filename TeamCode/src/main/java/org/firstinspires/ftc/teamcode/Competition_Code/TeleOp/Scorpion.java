@@ -274,25 +274,45 @@ public class Scorpion extends LinearOpMode{
 
 				/* Launcher Indicator LED Code */
 
-				if (robot.launch.getVelocity() >= 2000) {
-					robot.led3.setState(false);
-					robot.led2.setState(false);
-					robot.led1.setState(false);
+				if (robot.launch.getVelocity() >= 2300) {
+					robot.led3red.setState(true);
+					robot.led2red.setState(true);
+					robot.led1red.setState(true);
+					robot.led3green.setState(false);
+					robot.led2green.setState(false);
+					robot.led1green.setState(false);
 				}
-				else if (robot.launch.getVelocity() >= 1500) {
-					robot.led3.setState(true);
-					robot.led2.setState(false);
-					robot.led1.setState(false);
+				if (robot.launch.getVelocity() >= 2000 && robot.launch.getVelocity() < 2300) {
+					robot.led3red.setState(false);
+					robot.led2red.setState(false);
+					robot.led1red.setState(false);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
 				}
-				else if (robot.launch.getVelocity() >= 1000) {
-					robot.led3.setState(true);
-					robot.led2.setState(true);
-					robot.led1.setState(false);
+				else if (robot.launch.getVelocity() >= 1500 && robot.launch.getVelocity() < 2000) {
+					robot.led3red.setState(true);
+					robot.led2red.setState(false);
+					robot.led1red.setState(false);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
+				}
+				else if (robot.launch.getVelocity() >= 1000 && robot.launch.getVelocity() < 1500) {
+					robot.led3red.setState(true);
+					robot.led2red.setState(true);
+					robot.led1red.setState(false);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
 				}
 				else {
-					robot.led1.setState(true);
-					robot.led2.setState(true);
-					robot.led3.setState(true);
+					robot.led1red.setState(true);
+					robot.led2red.setState(true);
+					robot.led3red.setState(true);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
 				}
 
 				if (gamepad2.right_trigger > .25 && robot.AutoAimMode) { //Activate Pusher
@@ -457,12 +477,14 @@ public class Scorpion extends LinearOpMode{
 		robot.launch.setVelocity(3000);
 		sleep(700);
 
-		robot.anglePositionLeft = .247 - robot.lockedOffset;
-		robot.anglePositionRight = .753 + robot.lockedOffset;
+		robot.anglePositionLeft = .295 - robot.lockedOffset;
+		robot.anglePositionRight = .705 + robot.lockedOffset;
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 
 		launch(4);
+		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
+		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
 		robot.launch.setVelocity(0);
 	}
 
