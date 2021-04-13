@@ -463,7 +463,6 @@ public class Scorpion extends LinearOpMode{
 		robot.stopMotors();
 		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
 		robot.launch.setVelocity(3000);
-		sleep(700);
 		robot.setLauncherAngle(angle);
 		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
 		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
@@ -475,7 +474,6 @@ public class Scorpion extends LinearOpMode{
 	public void lockedAim() throws InterruptedException{
 		robot.stopMotors();
 		robot.launch.setVelocity(3000);
-		sleep(700);
 
 		robot.anglePositionLeft = .295 - robot.lockedOffset;
 		robot.anglePositionRight = .705 + robot.lockedOffset;
@@ -492,7 +490,6 @@ public class Scorpion extends LinearOpMode{
 		robot.stopMotors();
 		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
 		robot.launch.setVelocity(3000);
-		sleep(700);
 		robot.setLauncherAngle(angle);
 		launch(4);
 		robot.launch.setVelocity(0);

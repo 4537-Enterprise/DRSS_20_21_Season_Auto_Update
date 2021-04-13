@@ -9,111 +9,487 @@ import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcontroller.internal.PermissionValidatorWrapper;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.teamcode.Competition_Code.InitHardware;
+import org.firstinspires.ftc.teamcode.Competition_Code.InitHardwareRoadRunner;
 import org.firstinspires.ftc.teamcode.Competition_Code.RoadRunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.Competition_Code.RoadRunner.drive.SampleMecanumDrive;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Autonomous(name = "ScorpionAutoRoadRunner", group = "Auto")
 public class ScorpionAutoRoadRunner extends LinearOpMode{
 
-	int step = 1;
+	private InitHardwareRoadRunner robot = new InitHardwareRoadRunner();  	//Load hardware from hardware map
+
+	private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
+	private static final String LABEL_FIRST_ELEMENT = "Quad";
+	private static final String LABEL_SECOND_ELEMENT = "Single";
+
+	/*
+	 * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
+	 * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
+	 * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
+	 * web site at https://developer.vuforia.com/license-manager.
+	 *
+	 * Vuforia license keys are always 380 characters long, and look as if they contain mostly
+	 * random data. As an example, here is a example of a fragment of a valid key:
+	 *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
+	 * Once you've obtained a license key, copy the string from the Vuforia web site
+	 * and paste it in to your code on the next line, between the double quotes.
+	 */
+	public static final String VUFORIA_KEY = "AUz/xEr/////AAABmZjEf3Mc1kGYkOsXVF3u1Gl8gO6qZozGZxty6mcO/xE35elxxgMBwh4/zzwC9Dh4EPKvDexbQAVpjQJzz+Cx+PMYbKiPfvJNsyHDoJkWCPC1skmjKJq/4ctLkD1zGtWPhVUsdGK9ib6ze346j5nHgoFwzoi4SAITZUfQZEj2ccyiWs3zvY2DzbL/QgXrk391epqrpmB6y96vnvCsTUYA6i1y8pg7TZmjUBNWC/3PMr0EHBAFzu+cgtMWVD2sjR9XYcyh9eCRKFNq1aZwikL2P2F4Px5eyujkCVBsnQ0N+dNBo/UCREIF2az5iJY/x+qnrr8aZ2Rj1Gri12gHuKLT7BWS73HKsC9XVURurHz9RmJs";
+	/**
+	 * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
+	 * localization engine.
+	 */
+	private VuforiaLocalizer vuforia;
+
+	/**
+	 * {@link #tfod} is the variable we will use to store our instance of the TensorFlow Object
+	 * Detection engine.
+	 */
+	private TFObjectDetector tfod;
+
+	int step = 0;
+	String ringCount = "";
 
 	@Override
 	public void runOpMode() throws InterruptedException{
 
 		SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+		robot.init(hardwareMap); //Initialize hardware
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.update();
+
+		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
+		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Tensor Flow Object Detection", "Initializing");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.update();
+
+		// The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
+		// first.
+		initVuforia();
+		initTfod();
+
+		/**
+		 * Activate TensorFlow Object Detection before we wait for the start command.
+		 * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
+		 **/
+		if (tfod != null) {
+			tfod.activate();
+
+			// The TensorFlow software will scale the input images from the camera to a lower resolution.
+			// This can result in lower detection accuracy at longer distances (> 55cm or 22").
+			// If your target is at distance greater than 50 cm (20") you can adjust the magnification value
+			// to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
+			// should be set to the value of the images used to create the TensorFlow Object Detection model
+			// (typically 16/9).
+			tfod.setZoom(1.5, 16.0/9.0);
+		}
+
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Tensor Flow Object Detection", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.update();
+
+		robot.flipper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		robot.boreEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		robot.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+		robot.launch.setVelocity(0);				//Start up launcher
+		robot.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		robot.gripper.setPosition(0);
+
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Tensor Flow Object Detection", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Launcher", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Trajectories", "Initializing");
+		telemetry.update();
 
 		// We want to start the bot at x: -63, y: 18, heading: 0 degrees
 		Pose2d startPose = new Pose2d(-63, 32, Math.toRadians(0.0));
 		drive.setPoseEstimate(startPose);
 
-		Trajectory traj1 = drive.trajectoryBuilder(startPose, false)
-				.splineToConstantHeading(new Vector2d(-6, 10), Math.toRadians(0.0))
-				.build();
+		/**Quad Ring Trajectory Builders**/
 
-		Trajectory traj2 = drive.trajectoryBuilder(traj1.end(), false)
-				.splineTo(new Vector2d(50,42), Math.toRadians(90.0))
-				.build();
+			Trajectory quadTraj1 = drive.trajectoryBuilder(startPose, false)
+					.splineToConstantHeading(new Vector2d(-6, 10), Math.toRadians(0.0))
+					.build();
 
-		Trajectory traj3 = drive.trajectoryBuilder(traj2.end(), true)
-				.splineTo(new Vector2d(-2, 32), Math.toRadians(180.0))
-				.build();
+			Trajectory quadTraj2 = drive.trajectoryBuilder(quadTraj1.end(), false)
+					.splineTo(new Vector2d(50,42), Math.toRadians(90.0))
+					.build();
 
-		Trajectory traj4 = drive.trajectoryBuilder(traj3.end().plus(new Pose2d(0,0,Math.toRadians(180.0))), false)
-				.splineTo(new Vector2d(-32, 32), Math.toRadians(180.0),
-						new MinVelocityConstraint(
-								Arrays.asList(
-										new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-										new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
-								)
-						),
-						new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
-				.build();
+			Trajectory quadTraj3 = drive.trajectoryBuilder(quadTraj2.end(), true)
+					.splineTo(new Vector2d(-2, 32), Math.toRadians(180.0))
+					.build();
 
-		Trajectory traj5 = drive.trajectoryBuilder(traj4.end(), true)
-				.splineTo(new Vector2d(-24, 32), Math.toRadians(0.0))
-				.build();
+			Trajectory quadTraj4 = drive.trajectoryBuilder(quadTraj3.end().plus(new Pose2d(0,0,Math.toRadians(180.0))), false)
+					.splineTo(new Vector2d(-32, 32), Math.toRadians(180.0),
+							new MinVelocityConstraint(
+									Arrays.asList(
+											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+											new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
+									)
+							),
+							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+					.build();
 
-		Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
-				.splineTo(new Vector2d(-32,32), Math.toRadians(160.0))
-				.build();
+			Trajectory quadTraj5 = drive.trajectoryBuilder(quadTraj4.end(), true)
+					.splineTo(new Vector2d(-24, 32), Math.toRadians(0.0))
+					.build();
+
+			Trajectory quadTraj6 = drive.trajectoryBuilder(quadTraj5.end(), false)
+					.splineTo(new Vector2d(-32,32), Math.toRadians(160.0))
+					.build();
+
+		/**Single Ring Trajectory Builders**/
+
+			Trajectory singleTraj1 = drive.trajectoryBuilder(startPose, false)
+					.splineToConstantHeading(new Vector2d(-36, 36), Math.toRadians(0.0))
+					.build();
+
+			Trajectory singleTraj2 = drive.trajectoryBuilder(singleTraj1.end(), false)
+					.forward(18,
+							new MinVelocityConstraint(
+									Arrays.asList(
+											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+											new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
+									)
+							),
+							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+					.build();
+
+			Trajectory singleTraj3 = drive.trajectoryBuilder(singleTraj2.end(), false)
+					.forward(36)
+					.build();
+
+			Trajectory singleTraj4 = drive.trajectoryBuilder(singleTraj3.end(), false)
+					.splineTo(new Vector2d(-30, 42), Math.toRadians(180.0))
+					.build();
+
+			Trajectory singleTraj5 = drive.trajectoryBuilder(singleTraj4.end(), false)
+					.splineTo(new Vector2d(18, 36), Math.toRadians(0.0))
+					.build();
+
+			Trajectory singleTraj6 = drive.trajectoryBuilder(singleTraj5.end(), false)
+					.back(18)
+					.build();
+
+		/**Zero Ring Trajectory Builders**/
+
+			Trajectory zeroTraj1 = drive.trajectoryBuilder(startPose, false)
+					.forward(18)
+					.build();
+
+			Trajectory zeroTraj2 = drive.trajectoryBuilder(zeroTraj1.end(), false)
+					.splineToConstantHeading(new Vector2d(-9,56), Math.toRadians(0.0))
+					.build();
+
+			Trajectory zeroTraj3 = drive.trajectoryBuilder(zeroTraj2.end(), false)
+					.splineTo(new Vector2d(-30,42), Math.toRadians(180.0))
+					.build();
+
+			Trajectory zeroTraj4 = drive.trajectoryBuilder(zeroTraj3.end(), false)
+					.splineTo(new Vector2d(-9,56), Math.toRadians(0.0))
+					.build();
+
+			Trajectory zeroTraj5 = drive.trajectoryBuilder(zeroTraj4.end(), false)
+					.back(18)
+					.build();
+
+			Trajectory zeroTraj6 = drive.trajectoryBuilder(zeroTraj5.end(), false)
+					.splineToConstantHeading(new Vector2d(10,12), Math.toRadians(0.0))
+					.build();
+
+		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Tensor Flow Object Detection", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Launcher", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
+		telemetry.addData("Trajectories", "Initialized");
+		telemetry.addData("Status", "Ready");                 // Adds telemetry to the screen to show that the robot is ready
+		telemetry.addData("Press Play to Start", "Autonomous");    // Adds telemetry to the screen to tell the drivers that the code is ready to start
+		telemetry.update();
 
 		waitForStart();
 
 		if(isStopRequested()) return;
 
-		if (step == 1) { //Maneuver around the start stack
-			drive.followTrajectory(traj1);
-
-			step++;
-		}
-
-		if (step == 2) { //Go to wobble goal target area
-			drive.followTrajectory(traj2);
-
-			step++;
-		}
-
-		if (step == 3) { //Back up to launch line
-			drive.followTrajectory(traj3);
-			sleep(100);
-
-			step++;
-		}
-
-		if (step == 4) { //Turn around to pickup rings
-			drive.turn(Math.toRadians(180.0));
-
-			step++;
-		}
-
-		if (step == 5) { //Drive to pickup rings
-			drive.followTrajectory(traj4);
-
-			step++;
-		}
-
-		if (step == 6) { //Backup from rings and turn 180 degrees
-			drive.followTrajectory(traj5);
-			drive.turn(Math.toRadians(180));
-			sleep(1000);
-
-			step++;
-		}
-
-		if (step == 7) { //Turn back to face with wobble goal
-			drive.turn(Math.toRadians(160));
-
-			step++;
-		}
-
-		/*if (step == 8) { //Drive to wobble goal
-			drive.followTrajectory(traj6);
+		/*if (step == 0) {
+			// getUpdatedRecognitions() will return null if no new information is available since
+			// the last time that call was made.
+			List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+			if (updatedRecognitions != null) {
+				if (updatedRecognitions.size() == 0) {
+					ringCount = null;
+					step++;
+				}
+				// step through the list of recognitions and display boundary info.
+				int i = 0;
+				for (Recognition recognition : updatedRecognitions) {
+					ringCount = recognition.getLabel();
+					step++;
+				}
+			}
 		}*/
 
+		if (step == 0) {
+			ringCount = null;
+		}
+
+		/**Quad Ring Program**/
+
+			if (step == 1 && ringCount == "Quad") { //Maneuver around the start stack
+				drive.followTrajectory(quadTraj1);
+
+				step++;
+			}
+
+			if (step == 2 && ringCount == "Quad") { //Go to wobble goal target area
+				drive.followTrajectory(quadTraj2);
+
+				step++;
+			}
+
+			if (step == 3 && ringCount == "Quad") { //Back up to launch line
+				drive.followTrajectory(quadTraj3);
+				sleep(100);
+
+				step++;
+			}
+
+			if (step == 4 && ringCount == "Quad") { //Turn around to pickup rings
+				drive.turn(Math.toRadians(180.0));
+
+				step++;
+			}
+
+			if (step == 5 && ringCount == "Quad") { //Drive to pickup rings
+				drive.followTrajectory(quadTraj4);
+
+				step++;
+			}
+
+			if (step == 6 && ringCount == "Quad") { //Backup from rings and turn 180 degrees
+				drive.followTrajectory(quadTraj5);
+				drive.turn(Math.toRadians(180));
+				sleep(1000);
+
+				step++;
+			}
+
+			if (step == 7 && ringCount == "Quad") { //Turn back to face with wobble goal
+				drive.turn(Math.toRadians(160));
+
+				step++;
+			}
+
+			/*if (step == 8 && ring == 4) { //Drive to wobble goal
+				drive.followTrajectory(traj6);
+			}*/
+
+		/**Single Ring Program**/
+
+			if (step == 1  && ringCount == "Single") {
+				//autoAim(90); //Shoot into top basket
+
+				drive.followTrajectory(singleTraj1); //Move in front of start stack
+				//robot.intakeMotor.setPower(-1); //Start intake motor
+				drive.followTrajectory(singleTraj2); //Intake Rings
+
+				step++;
+			}
+
+			if (step == 2  && ringCount == "Single") {
+				drive.followTrajectory(singleTraj3); //Drive to the wobble goal zone
+
+				/*armDown(); //Drop Wobble goal into zone
+				robot.gripper.setPosition(1); //Open gripper
+				sleep(250);*/
+
+				//robot.intakeMotor.setPower(0); //Stop intake motor
+
+				step++;
+			}
+
+			if (step == 3  && ringCount == "Single") {
+				drive.followTrajectory(singleTraj4); //Drive back to the second wobble goal
+
+				/*robot.gripper.setPosition(0); //Close the gripper
+				sleep(250);
+				armUp(); //Grab the wobble goal*/
+
+				step++;
+			}
+
+			if (step == 4  && ringCount == "Single") {
+				drive.followTrajectory(singleTraj5); //Drive to the wobble goal zone
+
+				/*armDown(); //Drop the wobble goal into the zone
+				robot.gripper.setPosition(1); //Open the gripper
+				sleep(250);
+				armUp(); //Pick the arm back up*/
+
+				step++;
+			}
+
+			if (step == 5  && ringCount == "Single") {
+				drive.followTrajectory(singleTraj6); //Drive back to shoot single ring
+				drive.turn(Math.toRadians(45)); //Turn the robot towards the power shots
+
+				//autoAim(69); //Fire last disk at powershots
+
+				step++;
+			}
+
+		/**Zero Ring Program**/
+
+			if (step == 1 && ringCount == null) {
+				drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
+				drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
+
+				/*armDown(); //Drop the wobble goal into the zone
+				robot.gripper.setPosition(1); //Open the gripper
+				sleep(250);*/
+
+				step++;
+			}
+
+			if (step == 2 && ringCount == null) {
+				drive.followTrajectory(zeroTraj3); //Move to go pickup the second wobble goal
+
+				/*robot.gripper.setPosition(0); //Close gripper
+				sleep(250);
+				armUp();*/ //Pickup Wobble Goal
+
+				step++;
+			}
+
+			if (step == 3 && ringCount == null) {
+				drive.followTrajectory(zeroTraj4); //Return to wobble goal zone
+
+				/*armDown(); //Drop the wobble goal into the zone
+				robot.gripper.setPosition(1); //Open the gripper
+				sleep(250);
+				armUp(); //Pickup the arm*/
+
+				step++;
+			}
+
+			if (step == 4 && ringCount == null) {
+				drive.followTrajectory(zeroTraj5); //Backup to avoid smacking the wobble goals
+				drive.followTrajectory(zeroTraj6); //Move to the line and park/maybe shoot wobble goals
+
+				step++;
+			}
+	}
+
+	/**
+	 * Voids for aiming and launching rings
+	 */
+
+	public void autoAim(float distance) throws InterruptedException{
+		if (distance == 0) {
+			return;
+		}
+		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
+		robot.launch.setVelocity(3000);
+		sleep(700);
+		robot.setLauncherAngle(angle);
+		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
+		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
+		robot.launch(4);
+		robot.launch.setVelocity(0);
+		robot.zeroLauncherAngle();
+	}
+
+	public void lockedAim() throws InterruptedException{
+		robot.launch.setVelocity(3000);
+		sleep(700);
+
+		robot.anglePositionLeft = .295;
+		robot.anglePositionRight = .705;
+		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
+		robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
+
+		robot.launch(4);
+		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
+		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
+		robot.launch.setVelocity(0);
+	}
+
+	public void armDown() {
+		robot.armDown = true;
+		robot.arm.setTargetPosition(115);
+		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		robot.arm.setPower(1);
+		while (robot.arm.isBusy()) {
+			if (gamepad2.back) {
+				robot.gripper.setPosition(.65);
+				sleep(250);
+				robot.gripper.setPosition(1);
+				robot.gripperOpen = true;
+				return;
+			}
+		}
+		robot.arm.setPower(0);
+		robot.gripper.setPosition(1);
+		robot.gripperOpen = true;
+	}
+
+	public void armUp() {
+		robot.arm.setTargetPosition(15);
+		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		robot.arm.setPower(1);
+		while (robot.arm.isBusy()) {
+			if (gamepad2.back) {
+				return;
+			}
+		}
+		robot.arm.setPower(0);
+		robot.armDown = false;
+	}
+
+	/**
+	 * Initialize the Vuforia localization engine.
+	 */
+	private void initVuforia() {
+		/*
+		 * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+		 */
+		VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+		parameters.vuforiaLicenseKey = VUFORIA_KEY;
+		parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
+
+		//  Instantiate the Vuforia engine
+		vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+		// Loading trackables is not necessary for the TensorFlow Object Detection engine.
+	}
+
+	/**
+	 * Initialize the TensorFlow Object Detection engine.
+	 */
+	private void initTfod() {
+		int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+				"tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+		TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+		tfodParameters.minResultConfidence = 0.8f;
+		tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+		tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
 	}
 }
