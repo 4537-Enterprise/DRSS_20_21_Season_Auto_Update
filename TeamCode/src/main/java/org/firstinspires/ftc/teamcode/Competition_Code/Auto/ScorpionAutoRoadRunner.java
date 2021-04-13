@@ -234,7 +234,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 			List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
 			if (updatedRecognitions != null) {
 				if (updatedRecognitions.size() == 0) {
-					ringCount = null;
+					ringCount = "None";
 					step++;
 				}
 				// step through the list of recognitions and display boundary info.
@@ -247,154 +247,163 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		}*/
 
 		if (step == 0) {
-			ringCount = null;
+			ringCount = "None";
+
+			step++;
 		}
 
-		/**Quad Ring Program**/
+		switch (ringCount) { //Handles changing of program based off of detected rings
+			case("Quad"): //Run if four rings are detected
+				if (step == 1) {
+					drive.followTrajectory(quadTraj1); //Move around the start stack
 
-			if (step == 1 && ringCount == "Quad") { //Maneuver around the start stack
-				drive.followTrajectory(quadTraj1);
+					step++;
+				}
 
-				step++;
-			}
+				if (step == 2) {
+					drive.followTrajectory(quadTraj2); //Move to the wobble goal area
 
-			if (step == 2 && ringCount == "Quad") { //Go to wobble goal target area
-				drive.followTrajectory(quadTraj2);
+					step++;
+				}
 
-				step++;
-			}
+				if (step == 3) {
+					drive.followTrajectory(quadTraj3); //Back up to launch line
+					sleep(100);
 
-			if (step == 3 && ringCount == "Quad") { //Back up to launch line
-				drive.followTrajectory(quadTraj3);
-				sleep(100);
+					step++;
+				}
 
-				step++;
-			}
+				if (step == 4) {
+					drive.turn(Math.toRadians(180.0)); //Turn around to face starter stack
 
-			if (step == 4 && ringCount == "Quad") { //Turn around to pickup rings
-				drive.turn(Math.toRadians(180.0));
+					step++;
+				}
 
-				step++;
-			}
+				if (step == 5) {
+					drive.followTrajectory(quadTraj4); //Drive to pickup rings
 
-			if (step == 5 && ringCount == "Quad") { //Drive to pickup rings
-				drive.followTrajectory(quadTraj4);
+					step++;
+				}
 
-				step++;
-			}
+				if (step == 6) {
+					drive.followTrajectory(quadTraj5); //Backup from rings
+					drive.turn(Math.toRadians(180)); //Turn 180 degrees
+					sleep(1000);
 
-			if (step == 6 && ringCount == "Quad") { //Backup from rings and turn 180 degrees
-				drive.followTrajectory(quadTraj5);
-				drive.turn(Math.toRadians(180));
-				sleep(1000);
+					step++;
+				}
 
-				step++;
-			}
+				if (step == 7) {
+					drive.turn(Math.toRadians(160)); //Turn back to face with wobble goal
 
-			if (step == 7 && ringCount == "Quad") { //Turn back to face with wobble goal
-				drive.turn(Math.toRadians(160));
+					step++;
+				}
 
-				step++;
-			}
+				/*if (step == 8) {
+					drive.followTrajectory(traj6); //Drive to wobble goal
 
-			/*if (step == 8 && ring == 4) { //Drive to wobble goal
-				drive.followTrajectory(traj6);
-			}*/
+					step++;
+				}*/
 
-		/**Single Ring Program**/
+				break; //Exit out of switch case
 
-			if (step == 1  && ringCount == "Single") {
-				//autoAim(90); //Shoot into top basket
+			case("Single"):
+				if (step == 1) {
+					//autoAim(90); //Shoot into top basket
 
-				drive.followTrajectory(singleTraj1); //Move in front of start stack
-				//robot.intakeMotor.setPower(-1); //Start intake motor
-				drive.followTrajectory(singleTraj2); //Intake Rings
+					drive.followTrajectory(singleTraj1); //Move in front of start stack
+					//robot.intakeMotor.setPower(-1); //Start intake motor
+					drive.followTrajectory(singleTraj2); //Intake Rings
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 2  && ringCount == "Single") {
-				drive.followTrajectory(singleTraj3); //Drive to the wobble goal zone
+				if (step == 2) {
+					drive.followTrajectory(singleTraj3); //Drive to the wobble goal zone
 
-				/*armDown(); //Drop Wobble goal into zone
-				robot.gripper.setPosition(1); //Open gripper
-				sleep(250);*/
+					/*armDown(); //Drop Wobble goal into zone
+					robot.gripper.setPosition(1); //Open gripper
+					sleep(250);*/
 
-				//robot.intakeMotor.setPower(0); //Stop intake motor
+					//robot.intakeMotor.setPower(0); //Stop intake motor
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 3  && ringCount == "Single") {
-				drive.followTrajectory(singleTraj4); //Drive back to the second wobble goal
+				if (step == 3) {
+					drive.followTrajectory(singleTraj4); //Drive back to the second wobble goal
 
-				/*robot.gripper.setPosition(0); //Close the gripper
-				sleep(250);
-				armUp(); //Grab the wobble goal*/
+					/*robot.gripper.setPosition(0); //Close the gripper
+					sleep(250);
+					armUp(); //Grab the wobble goal*/
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 4  && ringCount == "Single") {
-				drive.followTrajectory(singleTraj5); //Drive to the wobble goal zone
+				if (step == 4) {
+					drive.followTrajectory(singleTraj5); //Drive to the wobble goal zone
 
-				/*armDown(); //Drop the wobble goal into the zone
-				robot.gripper.setPosition(1); //Open the gripper
-				sleep(250);
-				armUp(); //Pick the arm back up*/
+					/*armDown(); //Drop the wobble goal into the zone
+					robot.gripper.setPosition(1); //Open the gripper
+					sleep(250);
+					armUp(); //Pick the arm back up*/
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 5  && ringCount == "Single") {
-				drive.followTrajectory(singleTraj6); //Drive back to shoot single ring
-				drive.turn(Math.toRadians(45)); //Turn the robot towards the power shots
+				if (step == 5) {
+					drive.followTrajectory(singleTraj6); //Drive back to shoot single ring
+					drive.turn(Math.toRadians(45)); //Turn the robot towards the power shots
 
-				//autoAim(69); //Fire last disk at powershots
+					//autoAim(69); //Fire last disk at powershots
 
-				step++;
-			}
+					step++;
+				}
 
-		/**Zero Ring Program**/
+				break; //Exit out of switch case
 
-			if (step == 1 && ringCount == null) {
-				drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
-				drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
+			case("None"):
+				if (step == 1) {
+					drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
+					drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
 
-				/*armDown(); //Drop the wobble goal into the zone
-				robot.gripper.setPosition(1); //Open the gripper
-				sleep(250);*/
+					/*armDown(); //Drop the wobble goal into the zone
+					robot.gripper.setPosition(1); //Open the gripper
+					sleep(250);*/
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 2 && ringCount == null) {
-				drive.followTrajectory(zeroTraj3); //Move to go pickup the second wobble goal
+				if (step == 2) {
+					drive.followTrajectory(zeroTraj3); //Move to go pickup the second wobble goal
 
-				/*robot.gripper.setPosition(0); //Close gripper
-				sleep(250);
-				armUp();*/ //Pickup Wobble Goal
+					/*robot.gripper.setPosition(0); //Close gripper
+					sleep(250);
+					armUp();*/ //Pickup Wobble Goal
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 3 && ringCount == null) {
-				drive.followTrajectory(zeroTraj4); //Return to wobble goal zone
+				if (step == 3) {
+					drive.followTrajectory(zeroTraj4); //Return to wobble goal zone
 
-				/*armDown(); //Drop the wobble goal into the zone
-				robot.gripper.setPosition(1); //Open the gripper
-				sleep(250);
-				armUp(); //Pickup the arm*/
+					/*armDown(); //Drop the wobble goal into the zone
+					robot.gripper.setPosition(1); //Open the gripper
+					sleep(250);
+					armUp(); //Pickup the arm*/
 
-				step++;
-			}
+					step++;
+				}
 
-			if (step == 4 && ringCount == null) {
-				drive.followTrajectory(zeroTraj5); //Backup to avoid smacking the wobble goals
-				drive.followTrajectory(zeroTraj6); //Move to the line and park/maybe shoot wobble goals
+				if (step == 4) {
+					drive.followTrajectory(zeroTraj5); //Backup to avoid smacking the wobble goals
+					drive.followTrajectory(zeroTraj6); //Move to the line and park/maybe shoot wobble goals
 
-				step++;
-			}
+					step++;
+				}
+
+				break; //Exit out of switch case
+		}
 	}
 
 	/**
