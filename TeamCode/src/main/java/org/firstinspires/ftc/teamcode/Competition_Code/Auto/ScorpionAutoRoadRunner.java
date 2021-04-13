@@ -307,7 +307,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 				break; //Exit out of switch case
 
-			case("Single"):
+			case("Single"): //Run if one ring is detected
 				if (step == 1) {
 					//autoAim(90); //Shoot into top basket
 
@@ -362,7 +362,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 				break; //Exit out of switch case
 
-			case("None"):
+			case("None"): //Run if no rings are detected
 				if (step == 1) {
 					drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
 					drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
@@ -403,6 +403,12 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 				}
 
 				break; //Exit out of switch case
+
+			default:
+				telemetry.addData("FATAL ERROR", "Something went wrong :(");
+				telemetry.update();
+				sleep(10000);
+				break;
 		}
 	}
 
