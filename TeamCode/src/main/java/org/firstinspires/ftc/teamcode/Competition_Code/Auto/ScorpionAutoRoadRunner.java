@@ -159,7 +159,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		/**Single Ring Trajectory Builders**/
 
 			Trajectory singleTraj1 = drive.trajectoryBuilder(startPose, false)
-					.splineToConstantHeading(new Vector2d(-36, 36), Math.toRadians(0.0))
+					.splineToConstantHeading(new Vector2d(-36, 34), Math.toRadians(0.0))
 					.build();
 
 			Trajectory singleTraj2 = drive.trajectoryBuilder(singleTraj1.end(), false)
@@ -177,16 +177,31 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					.forward(36)
 					.build();
 
-			Trajectory singleTraj4 = drive.trajectoryBuilder(singleTraj3.end(), false)
-					.splineTo(new Vector2d(-30, 42), Math.toRadians(180.0))
+			Trajectory singleTraj3b = drive.trajectoryBuilder(singleTraj3.end().plus(new Pose2d(0,0, Math.toRadians(15.0))), false)
+					.back(8)
 					.build();
 
-			Trajectory singleTraj5 = drive.trajectoryBuilder(singleTraj4.end(), false)
-					.splineTo(new Vector2d(18, 36), Math.toRadians(0.0))
+			Trajectory singleTraj4 = drive.trajectoryBuilder(singleTraj3b.end(), false)
+					.splineTo(new Vector2d(-26, 38), Math.toRadians(180.0))
+					.build();
+
+			Trajectory singleTraj4b = drive.trajectoryBuilder(singleTraj4.end(), false)
+					.forward(5,
+							new MinVelocityConstraint(
+									Arrays.asList(
+											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+											new MecanumVelocityConstraint(5, DriveConstants.TRACK_WIDTH)
+									)
+							),
+							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+					.build();
+
+			Trajectory singleTraj5 = drive.trajectoryBuilder(singleTraj4b.end(), false)
+					.splineTo(new Vector2d(18, 50), Math.toRadians(0.0))
 					.build();
 
 			Trajectory singleTraj6 = drive.trajectoryBuilder(singleTraj5.end(), false)
-					.back(18)
+					.back(9)
 					.build();
 
 		/**Zero Ring Trajectory Builders**/
@@ -196,15 +211,44 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					.build();
 
 			Trajectory zeroTraj2 = drive.trajectoryBuilder(zeroTraj1.end(), false)
-					.splineToConstantHeading(new Vector2d(-9,56), Math.toRadians(0.0))
+					.splineTo(new Vector2d(-9,56), Math.toRadians(45.0))
 					.build();
 
-			Trajectory zeroTraj3 = drive.trajectoryBuilder(zeroTraj2.end(), false)
-					.splineTo(new Vector2d(-30,42), Math.toRadians(180.0))
+			Trajectory zeroTraj2b = drive.trajectoryBuilder(zeroTraj2.end(), false)
+					.back(9,
+							new MinVelocityConstraint(
+									Arrays.asList(
+											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+											new MecanumVelocityConstraint(15, DriveConstants.TRACK_WIDTH)
+									)
+							),
+							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+					.build();
+
+			Trajectory zeroTraj3 = drive.trajectoryBuilder(zeroTraj2b.end(), false)
+					.splineTo(new Vector2d(-26,39), Math.toRadians(180.0),
+							new MinVelocityConstraint(
+									Arrays.asList(
+											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+											new MecanumVelocityConstraint(15, DriveConstants.TRACK_WIDTH)
+									)
+							),
+							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
+					.build();
+
+			Trajectory zeroTraj3b = drive.trajectoryBuilder(zeroTraj3.end(), false)
+					.forward(5,
+							new MinVelocityConstraint(
+									Arrays.asList(
+											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
+											new MecanumVelocityConstraint(5, DriveConstants.TRACK_WIDTH)
+									)
+							),
+							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
 					.build();
 
 			Trajectory zeroTraj4 = drive.trajectoryBuilder(zeroTraj3.end(), false)
-					.splineTo(new Vector2d(-9,56), Math.toRadians(0.0))
+					.splineTo(new Vector2d(-9,56), Math.toRadians(15.0))
 					.build();
 
 			Trajectory zeroTraj5 = drive.trajectoryBuilder(zeroTraj4.end(), false)
@@ -212,8 +256,15 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					.build();
 
 			Trajectory zeroTraj6 = drive.trajectoryBuilder(zeroTraj5.end(), false)
-					.splineToConstantHeading(new Vector2d(10,12), Math.toRadians(0.0))
+					.splineToConstantHeading(new Vector2d(7,12), Math.toRadians(0.0))
 					.build();
+
+		robot.led3red.setState(true);
+		robot.led2red.setState(true);
+		robot.led1red.setState(true);
+		robot.led3green.setState(false);
+		robot.led2green.setState(false);
+		robot.led1green.setState(false);
 
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -228,7 +279,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 		if(isStopRequested()) return;
 
-		/*if (step == 0) {
+		if (step == 0) {
 			// getUpdatedRecognitions() will return null if no new information is available since
 			// the last time that call was made.
 			List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
@@ -244,17 +295,24 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					step++;
 				}
 			}
-		}*/
+		}
 
-		if (step == 0) {
-			ringCount = "None";
+		/*if (step == 0) {
+			ringCount = "Single";
 
 			step++;
-		}
+		}*/
 
 		switch (ringCount) { //Handles changing of program based off of detected rings
 			case("Quad"): //Run if four rings are detected
 				if (step == 1) {
+					robot.led3red.setState(false);
+					robot.led2red.setState(false);
+					robot.led1red.setState(false);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
+
 					drive.followTrajectory(quadTraj1); //Move around the start stack
 
 					step++;
@@ -309,10 +367,17 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 			case("Single"): //Run if one ring is detected
 				if (step == 1) {
+					robot.led3red.setState(true);
+					robot.led2red.setState(false);
+					robot.led1red.setState(false);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
+
 					//autoAim(90); //Shoot into top basket
 
 					drive.followTrajectory(singleTraj1); //Move in front of start stack
-					//robot.intakeMotor.setPower(-1); //Start intake motor
+					robot.intakeMotor.setPower(-1); //Start intake motor
 					drive.followTrajectory(singleTraj2); //Intake Rings
 
 					step++;
@@ -320,22 +385,25 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 				if (step == 2) {
 					drive.followTrajectory(singleTraj3); //Drive to the wobble goal zone
+					drive.turn(Math.toRadians(15.0));
 
-					/*armDown(); //Drop Wobble goal into zone
+					armDown(); //Drop Wobble goal into zone
 					robot.gripper.setPosition(1); //Open gripper
-					sleep(250);*/
+					sleep(250);
 
-					//robot.intakeMotor.setPower(0); //Stop intake motor
+					robot.intakeMotor.setPower(0); //Stop intake motor
 
 					step++;
 				}
 
 				if (step == 3) {
+					drive.followTrajectory(singleTraj3b);
 					drive.followTrajectory(singleTraj4); //Drive back to the second wobble goal
+					drive.followTrajectory(singleTraj4b);
 
-					/*robot.gripper.setPosition(0); //Close the gripper
+					robot.gripper.setPosition(0); //Close the gripper
 					sleep(250);
-					armUp(); //Grab the wobble goal*/
+					armUp(); //Grab the wobble goal
 
 					step++;
 				}
@@ -343,17 +411,17 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 				if (step == 4) {
 					drive.followTrajectory(singleTraj5); //Drive to the wobble goal zone
 
-					/*armDown(); //Drop the wobble goal into the zone
+					armDown(); //Drop the wobble goal into the zone
 					robot.gripper.setPosition(1); //Open the gripper
 					sleep(250);
-					armUp(); //Pick the arm back up*/
+					armUp(); //Pick the arm back up
 
 					step++;
 				}
 
 				if (step == 5) {
 					drive.followTrajectory(singleTraj6); //Drive back to shoot single ring
-					drive.turn(Math.toRadians(45)); //Turn the robot towards the power shots
+					drive.turn(Math.toRadians(-25)); //Turn the robot towards the power shots
 
 					//autoAim(69); //Fire last disk at powershots
 
@@ -364,22 +432,34 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 			case("None"): //Run if no rings are detected
 				if (step == 1) {
+					robot.led3red.setState(true);
+					robot.led2red.setState(true);
+					robot.led1red.setState(false);
+					robot.led3green.setState(true);
+					robot.led2green.setState(true);
+					robot.led1green.setState(true);
+
+					//autoAim(110);
+
 					drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
 					drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
 
-					/*armDown(); //Drop the wobble goal into the zone
+					armDown(); //Drop the wobble goal into the zone
 					robot.gripper.setPosition(1); //Open the gripper
-					sleep(250);*/
+					sleep(250);
 
 					step++;
 				}
 
 				if (step == 2) {
+					drive.followTrajectory(zeroTraj2b); //Back up a little to avoid smacking the wobble goal
 					drive.followTrajectory(zeroTraj3); //Move to go pickup the second wobble goal
-
-					/*robot.gripper.setPosition(0); //Close gripper
 					sleep(250);
-					armUp();*/ //Pickup Wobble Goal
+					drive.followTrajectory(zeroTraj3b); //Move forward a tiny bit to grab the wobble goal
+
+					robot.gripper.setPosition(0); //Close gripper
+					sleep(250);
+					armUp(); //Pickup Wobble Goal
 
 					step++;
 				}
@@ -387,7 +467,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 				if (step == 3) {
 					drive.followTrajectory(zeroTraj4); //Return to wobble goal zone
 
-					/*armDown(); //Drop the wobble goal into the zone
+					armDown(); //Drop the wobble goal into the zone
 					robot.gripper.setPosition(1); //Open the gripper
 					sleep(250);
 					armUp(); //Pickup the arm*/
