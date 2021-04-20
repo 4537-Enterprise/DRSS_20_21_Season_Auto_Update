@@ -126,34 +126,39 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		/**Quad Ring Trajectory Builders**/
 
 			Trajectory quadTraj1 = drive.trajectoryBuilder(startPose, false)
-					.splineToConstantHeading(new Vector2d(-6, 10), Math.toRadians(0.0))
+					.splineTo(new Vector2d(-6, 10), Math.toRadians(0.0))
+					.splineTo(new Vector2d(50,40), Math.toRadians(80.0))
 					.build();
 
-			Trajectory quadTraj2 = drive.trajectoryBuilder(quadTraj1.end(), false)
-					.splineTo(new Vector2d(50,42), Math.toRadians(90.0))
-					.build();
-
-			Trajectory quadTraj3 = drive.trajectoryBuilder(quadTraj2.end(), true)
+			Trajectory quadTraj2 = drive.trajectoryBuilder(quadTraj1.end(), true)
 					.splineTo(new Vector2d(-2, 32), Math.toRadians(180.0))
+					.addDisplacementMarker(7, () -> {
+						robot.launch.setVelocity(3000);
+					})
 					.build();
 
-			Trajectory quadTraj4 = drive.trajectoryBuilder(quadTraj3.end().plus(new Pose2d(0,0,Math.toRadians(180.0))), false)
-					.splineTo(new Vector2d(-32, 32), Math.toRadians(180.0),
+			Trajectory quadTraj3 = drive.trajectoryBuilder(quadTraj2.end(), false)
+					.splineTo(new Vector2d(-30,46), Math.toRadians(212.0))
+					.build();
+
+			Trajectory quadTraj4 = drive.trajectoryBuilder(quadTraj3.end(), false)
+					.forward(1,
 							new MinVelocityConstraint(
 									Arrays.asList(
 											new AngularVelocityConstraint(DriveConstants.MAX_ANG_VEL),
-											new MecanumVelocityConstraint(10, DriveConstants.TRACK_WIDTH)
+											new MecanumVelocityConstraint(2.5, DriveConstants.TRACK_WIDTH)
 									)
 							),
 							new ProfileAccelerationConstraint(DriveConstants.MAX_ACCEL))
 					.build();
 
-			Trajectory quadTraj5 = drive.trajectoryBuilder(quadTraj4.end(), true)
-					.splineTo(new Vector2d(-24, 32), Math.toRadians(0.0))
+			Trajectory quadTraj5 = drive.trajectoryBuilder(quadTraj4.end(), false)
+					.splineTo(new Vector2d(-10,50), Math.toRadians(0.0))
+					.splineTo(new Vector2d(32, 54), Math.toRadians(0.0))
 					.build();
 
 			Trajectory quadTraj6 = drive.trajectoryBuilder(quadTraj5.end(), false)
-					.splineTo(new Vector2d(-32,32), Math.toRadians(160.0))
+					.back(22)
 					.build();
 
 		/**Single Ring Trajectory Builders**/
@@ -201,17 +206,24 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					.build();
 
 			Trajectory singleTraj6 = drive.trajectoryBuilder(singleTraj5.end(), false)
-					.back(9)
+					.back(20)
+					.build();
+
+			Trajectory singleTraj7 = drive.trajectoryBuilder(singleTraj6.end(), false)
+					.forward(9)
 					.build();
 
 		/**Zero Ring Trajectory Builders**/
 
 			Trajectory zeroTraj1 = drive.trajectoryBuilder(startPose, false)
-					.forward(18)
+					.forward(52)
+					.addDisplacementMarker(20, () -> {
+						robot.launch.setVelocity(3000);
+					})
 					.build();
 
 			Trajectory zeroTraj2 = drive.trajectoryBuilder(zeroTraj1.end(), false)
-					.splineTo(new Vector2d(-9,56), Math.toRadians(45.0))
+					.splineTo(new Vector2d(-8,52), Math.toRadians(45.0))
 					.build();
 
 			Trajectory zeroTraj2b = drive.trajectoryBuilder(zeroTraj2.end(), false)
@@ -279,7 +291,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 		if(isStopRequested()) return;
 
-		if (step == 0) {
+		/*if (step == 0) {
 			// getUpdatedRecognitions() will return null if no new information is available since
 			// the last time that call was made.
 			List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
@@ -295,13 +307,13 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					step++;
 				}
 			}
-		}
+		}*/
 
-		/*if (step == 0) {
+		if (step == 0) {
 			ringCount = "Single";
 
 			step++;
-		}*/
+		}
 
 		switch (ringCount) { //Handles changing of program based off of detected rings
 			case("Quad"): //Run if four rings are detected
@@ -319,49 +331,56 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 				}
 
 				if (step == 2) {
-					drive.followTrajectory(quadTraj2); //Move to the wobble goal area
+					armDown(); //Drop Wobble goal into zone
+					robot.gripper.setPosition(1); //Open gripper
+					sleep(250);
+					armUp();
 
 					step++;
 				}
 
 				if (step == 3) {
-					drive.followTrajectory(quadTraj3); //Back up to launch line
-					sleep(100);
+					drive.followTrajectory(quadTraj2); //Back up to launch line
+					drive.turn(Math.toRadians(4));
+					autoAim(120);
+					drive.turn(Math.toRadians(-4));
 
 					step++;
 				}
 
 				if (step == 4) {
-					drive.turn(Math.toRadians(180.0)); //Turn around to face starter stack
+					drive.followTrajectory(quadTraj3); //Go to second wobble goal
+					armDown();
 
 					step++;
 				}
 
 				if (step == 5) {
-					drive.followTrajectory(quadTraj4); //Drive to pickup rings
+					//drive.followTrajectory(quadTraj4);
+					robot.gripper.setPosition(0); //Close the gripper
+					sleep(250);
+					armUp(); //Grab the wobble goal
 
 					step++;
 				}
 
 				if (step == 6) {
-					drive.followTrajectory(quadTraj5); //Backup from rings
-					drive.turn(Math.toRadians(180)); //Turn 180 degrees
-					sleep(1000);
+					drive.followTrajectory(quadTraj5);
+					drive.turn(Math.toRadians(45));
+
+					armDown(); //Drop Wobble goal into zone
+					robot.gripper.setPosition(1); //Open gripper
+					sleep(250);
 
 					step++;
 				}
 
 				if (step == 7) {
-					drive.turn(Math.toRadians(160)); //Turn back to face with wobble goal
+					armUp();
+					drive.followTrajectory(quadTraj6);
 
 					step++;
 				}
-
-				/*if (step == 8) {
-					drive.followTrajectory(traj6); //Drive to wobble goal
-
-					step++;
-				}*/
 
 				break; //Exit out of switch case
 
@@ -374,11 +393,14 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					robot.led2green.setState(true);
 					robot.led1green.setState(true);
 
-					//autoAim(90); //Shoot into top basket
+					//autoAim(415);
 
 					drive.followTrajectory(singleTraj1); //Move in front of start stack
+					autoAim(300);
+
 					robot.intakeMotor.setPower(-1); //Start intake motor
 					drive.followTrajectory(singleTraj2); //Intake Rings
+
 
 					step++;
 				}
@@ -423,7 +445,9 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					drive.followTrajectory(singleTraj6); //Drive back to shoot single ring
 					drive.turn(Math.toRadians(-25)); //Turn the robot towards the power shots
 
-					//autoAim(69); //Fire last disk at powershots
+					autoAim(500); //Fire last disk at powershots
+
+					drive.followTrajectory(singleTraj7);
 
 					step++;
 				}
@@ -439,12 +463,13 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					robot.led2green.setState(true);
 					robot.led1green.setState(true);
 
-					//autoAim(110);
-
 					drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
+					drive.turn(Math.toRadians(2)); //Turn a little bit to the left
+					autoAim(135); //Fire the three rings
+					drive.turn(Math.toRadians(-2)); //Turn a little bit to the right
 					drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
 
-					armDown(); //Drop the wobble goal into the zone
+					armDown(); //Drop the wobble goal into positon
 					robot.gripper.setPosition(1); //Open the gripper
 					sleep(250);
 
@@ -528,18 +553,11 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 	public void armDown() {
 		robot.armDown = true;
+		robot.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.arm.setTargetPosition(115);
 		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		robot.arm.setPower(1);
-		while (robot.arm.isBusy()) {
-			if (gamepad2.back) {
-				robot.gripper.setPosition(.65);
-				sleep(250);
-				robot.gripper.setPosition(1);
-				robot.gripperOpen = true;
-				return;
-			}
-		}
+		while (robot.arm.isBusy()) {}
 		robot.arm.setPower(0);
 		robot.gripper.setPosition(1);
 		robot.gripperOpen = true;
@@ -549,11 +567,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		robot.arm.setTargetPosition(15);
 		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		robot.arm.setPower(1);
-		while (robot.arm.isBusy()) {
-			if (gamepad2.back) {
-				return;
-			}
-		}
+		while (robot.arm.isBusy()) {		}
 		robot.arm.setPower(0);
 		robot.armDown = false;
 	}
