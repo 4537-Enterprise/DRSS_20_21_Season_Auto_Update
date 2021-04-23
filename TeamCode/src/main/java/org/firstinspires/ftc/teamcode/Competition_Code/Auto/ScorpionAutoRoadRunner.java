@@ -210,7 +210,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					.build();
 
 			Trajectory singleTraj7 = drive.trajectoryBuilder(singleTraj6.end(), false)
-					.forward(9)
+					.forward(7)
 					.build();
 
 		/**Zero Ring Trajectory Builders**/
@@ -291,7 +291,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 		if(isStopRequested()) return;
 
-		/*if (step == 0) {
+		if (step == 0) {
 			// getUpdatedRecognitions() will return null if no new information is available since
 			// the last time that call was made.
 			List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
@@ -307,13 +307,13 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					step++;
 				}
 			}
-		}*/
+		}
 
-		if (step == 0) {
-			ringCount = "Single";
+		/*if (step == 0) {
+			ringCount = "None";
 
 			step++;
-		}
+		}*/
 
 		switch (ringCount) { //Handles changing of program based off of detected rings
 			case("Quad"): //Run if four rings are detected
@@ -332,6 +332,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 				if (step == 2) {
 					armDown(); //Drop Wobble goal into zone
+					armDown();
 					robot.gripper.setPosition(1); //Open gripper
 					sleep(250);
 					armUp();
@@ -396,7 +397,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					//autoAim(415);
 
 					drive.followTrajectory(singleTraj1); //Move in front of start stack
-					autoAim(300);
+					autoAim(330);
 
 					robot.intakeMotor.setPower(-1); //Start intake motor
 					drive.followTrajectory(singleTraj2); //Intake Rings
@@ -410,6 +411,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					drive.turn(Math.toRadians(15.0));
 
 					armDown(); //Drop Wobble goal into zone
+					armDown();
 					robot.gripper.setPosition(1); //Open gripper
 					sleep(250);
 
@@ -465,11 +467,12 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 					drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
 					drive.turn(Math.toRadians(2)); //Turn a little bit to the left
-					autoAim(135); //Fire the three rings
+					autoAim(165); //Fire the three rings
 					drive.turn(Math.toRadians(-2)); //Turn a little bit to the right
 					drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
 
 					armDown(); //Drop the wobble goal into positon
+					armDown();
 					robot.gripper.setPosition(1); //Open the gripper
 					sleep(250);
 
@@ -553,13 +556,11 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 	public void armDown() {
 		robot.armDown = true;
-		robot.arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		robot.arm.setTargetPosition(115);
 		robot.arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		robot.arm.setPower(1);
 		while (robot.arm.isBusy()) {}
 		robot.arm.setPower(0);
-		robot.gripper.setPosition(1);
 		robot.gripperOpen = true;
 	}
 
