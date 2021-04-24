@@ -268,7 +268,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					.build();
 
 			Trajectory zeroTraj6 = drive.trajectoryBuilder(zeroTraj5.end(), false)
-					.splineToConstantHeading(new Vector2d(7,12), Math.toRadians(0.0))
+					.splineToConstantHeading(new Vector2d(12,12), Math.toRadians(0.0))
 					.build();
 
 		robot.led3red.setState(true);
@@ -397,7 +397,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 					//autoAim(415);
 
 					drive.followTrajectory(singleTraj1); //Move in front of start stack
-					autoAim(330);
+					autoAim(380);
 
 					robot.intakeMotor.setPower(-1); //Start intake motor
 					drive.followTrajectory(singleTraj2); //Intake Rings
@@ -467,7 +467,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 					drive.followTrajectory(zeroTraj1); //Move forward to avoid second wobble goal
 					drive.turn(Math.toRadians(2)); //Turn a little bit to the left
-					autoAim(165); //Fire the three rings
+					autoAim(185); //Fire the three rings
 					drive.turn(Math.toRadians(-2)); //Turn a little bit to the right
 					drive.followTrajectory(zeroTraj2); //Move in front of wobble goal zone
 

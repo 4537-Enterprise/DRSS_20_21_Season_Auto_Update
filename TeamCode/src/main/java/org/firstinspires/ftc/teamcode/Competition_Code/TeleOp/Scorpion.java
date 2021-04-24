@@ -215,6 +215,11 @@ public class Scorpion extends LinearOpMode{
 					robot.anglePositionLeft = .26;
 					robot.anglePositionRight = .74;
 				}
+
+				else if (gamepad2.left_bumper) {
+					robot.intakeMotor.setPower(1);
+				}
+
 				else {
 					robot.intakeMotor.setPower(0); //Stop running intake motor
 				}
@@ -322,7 +327,7 @@ public class Scorpion extends LinearOpMode{
 				if (gamepad2.right_trigger > .25 && !robot.AutoAimMode) {
 					lockedAim();
 				}
-				if (gamepad2.left_bumper) { //Activate Push+er
+				if (gamepad2.right_bumper) { //Activate Push+er
 					powerShot(74);
 				}
 			/**End of launcher controls**/
