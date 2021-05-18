@@ -328,7 +328,7 @@ public class Scorpion extends LinearOpMode{
 					lockedAim();
 				}
 				if (gamepad2.right_bumper) { //Activate Push+er
-					powerShot(74);
+					powerShot();
 				}
 			/**End of launcher controls**/
 
@@ -491,14 +491,19 @@ public class Scorpion extends LinearOpMode{
 		robot.launch.setVelocity(0);
 	}
 
-	public void powerShot(float distance) throws InterruptedException{
+	public void powerShot() throws InterruptedException{
 		robot.stopMotors();
-		float angle = (float) ((0.001*Math.pow((distance-60),2))+17.5);
 		robot.launch.setVelocity(3000);
-		robot.setLauncherAngle(angle);
-		launch(4);
+
+		robot.anglePositionLeft = .325;
+		robot.anglePositionRight = .674;
+		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
+		robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
+
+		launch(2);
+		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
+		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
 		robot.launch.setVelocity(0);
-		robot.zeroLauncherAngle();
 	}
 
 	/** Auto Aim Voids so I can kill the program **/
