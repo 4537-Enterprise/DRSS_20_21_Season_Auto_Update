@@ -46,6 +46,7 @@ public class Scorpion extends LinearOpMode{
 
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
+		robot.safetyServo.setPosition(1);
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Vuforia", "Initializing");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -465,6 +466,7 @@ public class Scorpion extends LinearOpMode{
 		if (distance == 0) {
 			return;
 		}
+		robot.safetyServo.setPosition(.65);
 		robot.stopMotors();
 		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
 		robot.launch.setVelocity(3000);
@@ -474,12 +476,13 @@ public class Scorpion extends LinearOpMode{
 		launch(4);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
+		robot.safetyServo.setPosition(1);
 	}
 
 	public void lockedAim() throws InterruptedException{
+		robot.safetyServo.setPosition(.65);
 		robot.stopMotors();
 		robot.launch.setVelocity(3000);
-
 		robot.anglePositionLeft = .295 - robot.lockedOffset;
 		robot.anglePositionRight = .705 + robot.lockedOffset;
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
@@ -489,9 +492,11 @@ public class Scorpion extends LinearOpMode{
 		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
 		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
 		robot.launch.setVelocity(0);
+		robot.safetyServo.setPosition(1);
 	}
 
 	public void powerShot() throws InterruptedException{
+		robot.safetyServo.setPosition(.65);
 		robot.stopMotors();
 		robot.launch.setVelocity(3000);
 
@@ -500,10 +505,11 @@ public class Scorpion extends LinearOpMode{
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft);  	//Set Servo Position
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight);   //Set Servo Position
 
-		launch(2);
+		launch(1);
 		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
 		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
 		robot.launch.setVelocity(0);
+		robot.safetyServo.setPosition(1);
 	}
 
 	/** Auto Aim Voids so I can kill the program **/

@@ -21,6 +21,7 @@ public class InitHardwareRoadRunner{
 		public DcMotorEx launch;      // Defines the launcher motor
 		public DcMotorEx flipper;     // Defines the flipper motor
 		public DcMotor intakeMotor; // Defines the intake Motor
+		public Servo safetyServo;
 
 		// Angle adjustment servo definitions
 		public Servo angleAdjustRight;
@@ -116,6 +117,7 @@ public class InitHardwareRoadRunner{
 		//Angle Adjustment Servo Initialization
 		angleAdjustLeft = hwMap.servo.get("angleAdjustL");
 		angleAdjustRight = hwMap.servo.get("angleAdjustR");
+		safetyServo = hwMap.servo.get("safetyServo");
 
 		//Launcher Encoder Initializations
 		boreEncoder = hwMap.get(DcMotor.class, "intakeMotor");

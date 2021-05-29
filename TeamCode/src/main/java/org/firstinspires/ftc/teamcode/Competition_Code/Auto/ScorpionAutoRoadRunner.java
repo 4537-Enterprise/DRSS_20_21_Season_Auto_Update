@@ -73,6 +73,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 
 		robot.angleAdjustLeft.setPosition(robot.anglePositionLeft); 	//Start servos at lowest point
 		robot.angleAdjustRight.setPosition(robot.anglePositionRight); //Start servos at lowest point
+		robot.safetyServo.setPosition(1);
 		telemetry.addData("Drive Train", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Angle Adjust", "Initialized");      // Adds telemetry to the screen to show that the drive train is initialized
 		telemetry.addData("Tensor Flow Object Detection", "Initializing");      // Adds telemetry to the screen to show that the drive train is initialized
@@ -310,7 +311,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		}
 
 		/*if (step == 0) {
-			ringCount = "None";
+			ringCount = "Quad";
 
 			step++;
 		}*/

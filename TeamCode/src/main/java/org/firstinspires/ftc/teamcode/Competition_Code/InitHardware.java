@@ -61,6 +61,7 @@ public class InitHardware{
 		public DcMotorEx launch;      // Defines the launcher motor
 		public DcMotorEx flipper;     // Defines the flipper motor
 		public DcMotor intakeMotor; // Defines the intake Motor
+		public Servo safetyServo;
 
 		// Angle adjustment servo definitions
 		public Servo angleAdjustRight;
@@ -190,6 +191,7 @@ public class InitHardware{
 		intakeMotor = hwMap.get(DcMotor.class, "intakeMotor"); // Initializes intake motor from configuration
 		intakeMotor.setDirection(DcMotor.Direction.FORWARD); // Sets the intake motor direction to reverse
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		safetyServo = hwMap.servo.get("safetyServo");
 
 		//Angle Adjustment Servo Initialization
 		angleAdjustLeft = hwMap.servo.get("angleAdjustL");
