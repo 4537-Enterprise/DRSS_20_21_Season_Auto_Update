@@ -529,6 +529,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		if (distance == 0) {
 			return;
 		}
+		robot.safetyServo.setPosition(.65);
 		float angle = (float) ((-0.0123*distance)+robot.launchOffset);
 		robot.launch.setVelocity(3000);
 		sleep(700);
@@ -538,9 +539,11 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		robot.launch(4);
 		robot.launch.setVelocity(0);
 		robot.zeroLauncherAngle();
+		robot.safetyServo.setPosition(1);
 	}
 
 	public void lockedAim() throws InterruptedException{
+		robot.safetyServo.setPosition(.65);
 		robot.launch.setVelocity(3000);
 		sleep(700);
 
@@ -553,6 +556,7 @@ public class ScorpionAutoRoadRunner extends LinearOpMode{
 		robot.LeftServoPosition = robot.angleAdjustLeft.getPosition();
 		robot.RightServoPosition = robot.angleAdjustRight.getPosition();
 		robot.launch.setVelocity(0);
+		robot.safetyServo.setPosition(1);
 	}
 
 	public void armDown() {
